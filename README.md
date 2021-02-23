@@ -51,6 +51,10 @@ git clone https://github.com/matsuyoshi30/germanium
 cd germanium && go install
 ```
 
+### Requirements
+
+- go1.16
+
 
 ## LICENSE
 
