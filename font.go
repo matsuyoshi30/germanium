@@ -1,8 +1,7 @@
 package main
 
 import (
-	"io/ioutil"
-	"os"
+	_ "embed"
 
 	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
@@ -10,23 +9,13 @@ import (
 
 var (
 	fontSize = 24.0
+
+	//go:embed assets/fonts/Hack-Regular.ttf
+	font_hack []byte
 )
 
 func LoadFont() (font.Face, error) {
-	fonts, err := os.Open("./assets/fonts/Hack-Regular.ttf")
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		fonts.Close()
-	}()
-
-	fontbytes, err := ioutil.ReadAll(fonts)
-	if err != nil {
-		return nil, err
-	}
-
-	ft, err := truetype.Parse(fontbytes)
+	ft, err := truetype.Parse(font_hack)
 	if err != nil {
 		return nil, err
 	}
