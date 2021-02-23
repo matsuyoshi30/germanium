@@ -4,7 +4,7 @@ Germanium is an alternative to [Carbon](https://github.com/carbon-app/carbon) an
 
 ![screenshot](assets/img/sample.png)
 
-Germanium can work without browser ans internet like Silicon.
+Germanium can work without browser and internet like Silicon.
 
 
 ## Usage
