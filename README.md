@@ -44,14 +44,18 @@ germanium --no-window-access-bar -o main.png main.go
 
 ## Install
 
-Clone this repository and `go install`
+### GitHub releases
+
+You can download from [here](https://github.com/matsuyoshi30/germanium/releases).
+
+### Build from source
 
 ```
 git clone https://github.com/matsuyoshi30/germanium
 cd germanium && go install
 ```
 
-### Requirements
+#### Requirements
 
 - go1.16
 
