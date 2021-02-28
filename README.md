@@ -48,6 +48,12 @@ germanium --no-window-access-bar -o main.png main.go
 
 You can download from [here](https://github.com/matsuyoshi30/germanium/releases).
 
+### Arch Linux
+
+```
+yay germanium
+```
+
 ### Build from source
 
 ```
