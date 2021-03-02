@@ -16,7 +16,9 @@ USAGE:
     germanium [FLAGS] [FILE]
 
 FLAGS:
-    -o <PATH>               Write output image to specific filepath [default: ./output.png]
+    -o, --output <PATH>     Write output image to specific filepath [default: ./output.png]
+    -f, --font <FONT>       Specify font eg. 'Hack-Bold'
+    --list-fonts            List all available fonts in your system
     --no-line-number        Hide the line number
     --no-window-access-bar  Hide the window access bar
 ```
