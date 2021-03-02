@@ -13,12 +13,15 @@ import (
 	"github.com/alecthomas/chroma/formatters"
 	"github.com/alecthomas/chroma/lexers"
 	"github.com/alecthomas/chroma/styles"
+	findfont "github.com/flopp/go-findfont"
 	flags "github.com/jessevdk/go-flags"
 	"golang.org/x/image/font"
 )
 
 type Options struct {
 	Output            string `short:"o" long:"output" default:"output.png" description:"Write output image to specific filepath"`
+	Font              string `short:"f" long:"font" default:"Hack-Regular" description:"Specify font eg. 'Hack-Bold'"`
+	ListFonts         bool   `long:"list-fonts" description:"List all available fonts in your system"`
 	NoLineNum         bool   `long:"no-line-number" description:"Hide the line number"`
 	NoWindowAccessBar bool   `long:"no-window-access-bar" description:"Hide the window access bar"`
 }
@@ -52,6 +55,11 @@ func main() {
 		os.Exit(exitCodeErr)
 	}
 
+	if opts.ListFonts {
+		listFonts()
+		os.Exit(exitCodeOK)
+	}
+
 	if len(args) != 1 {
 		printUsage()
 		fmt.Fprintln(os.Stderr, "File to read was not provided")
@@ -68,7 +76,9 @@ USAGE:
     %s [FLAGS] [FILE]
 
 FLAGS:
-    -o <PATH>               Write output image to specific filepath [default: ./output.png]
+    -o, --output <PATH>     Write output image to specific filepath [default: ./output.png]
+    -f, --font <FONT>       Specify font eg. 'Hack-Bold'
+    --list-fonts            List all available fonts in your system
     --no-line-number        Hide the line number
     --no-window-access-bar  Hide the window access bar
 
@@ -146,6 +156,16 @@ func run(srcpath string) int {
 	}
 
 	return exitCodeOK
+}
+
+func listFonts() {
+	for _, path := range findfont.List() {
+		base := filepath.Base(path)
+		ext := filepath.Ext(path)
+		if ext == ".ttf" {
+			fmt.Println(base[0 : len(base)-len(ext)])
+		}
+	}
 }
 
 func reader(srcpath string) (string, int, error) {
