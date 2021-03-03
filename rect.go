@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
@@ -22,9 +23,14 @@ var (
 	maximum = color.RGBA{39, 201, 63, 255}
 )
 
-func NewPanels(w, h int) (*Rect, *Rect, *Rect) {
+func NewPanels(w, h int) (*Rect, *Rect, *Rect, error) {
+	bg, err := parseHexColor(opts.BackgroundColor)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
 	// base panel
-	base := NewRect(0, 0, w, h, background)
+	base := NewRect(0, 0, w, h, bg)
 	base.fillColor()
 
 	// window panel
@@ -81,7 +87,26 @@ func NewPanels(w, h int) (*Rect, *Rect, *Rect) {
 	line.fillColor()
 	base.drawOver(line.img)
 
-	return base, editor, line
+	return base, editor, line, nil
+}
+
+func parseHexColor(s string) (color.RGBA, error) {
+	c := color.RGBA{A: 255}
+
+	var err error
+	switch len(s) {
+	case 7:
+		_, err = fmt.Sscanf(s, "#%02x%02x%02x", &c.R, &c.G, &c.B)
+	case 4:
+		_, err = fmt.Sscanf(s, "#%1x%1x%1x", &c.R, &c.G, &c.B)
+		c.R *= 17
+		c.G *= 17
+		c.B *= 17
+	default:
+		err = fmt.Errorf("invalid color length")
+	}
+
+	return c, err
 }
 
 type Rect struct {
