@@ -104,11 +104,14 @@ func run(srcpath string) int {
 		height += wh
 	}
 
-	base, editor, line, err := NewPanels(width, height)
+	base, err := NewBase(width, height)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return exitCodeErr
 	}
+	base.NewWindowPanel()
+	editor := base.NewEditorPanel()
+	line := base.NewLinePanel()
 
 	currentDir, err := os.Getwd()
 	if err != nil {
