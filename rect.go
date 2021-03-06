@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
@@ -22,12 +23,60 @@ var (
 	maximum = color.RGBA{39, 201, 63, 255}
 )
 
-func NewPanels(w, h int) (*Rect, *Rect, *Rect) {
+func NewBase(w, h int) (*Rect, error) {
+	bg, err := parseHexColor(opts.BackgroundColor)
+	if err != nil {
+		return nil, err
+	}
+
 	// base panel
-	base := NewRect(0, 0, w, h, background)
+	base := NewRect(0, 0, w, h, bg)
 	base.fillColor()
 
-	// window panel
+	return base, nil
+}
+
+func parseHexColor(s string) (color.RGBA, error) {
+	c := color.RGBA{A: 255}
+
+	var err error
+	switch len(s) {
+	case 7:
+		_, err = fmt.Sscanf(s, "#%02x%02x%02x", &c.R, &c.G, &c.B)
+	case 4:
+		_, err = fmt.Sscanf(s, "#%1x%1x%1x", &c.R, &c.G, &c.B)
+		c.R *= 17
+		c.G *= 17
+		c.B *= 17
+	default:
+		err = fmt.Errorf("invalid color length")
+	}
+
+	return c, err
+}
+
+type Rect struct {
+	img   *image.RGBA
+	color color.RGBA
+}
+
+func NewRect(sx, sy, ex, ey int, c color.RGBA) *Rect {
+	rect := image.Rect(sx, sy, ex, ey)
+	return &Rect{img: image.NewRGBA(rect), color: c}
+}
+
+func (r *Rect) fillColor() {
+	for x := r.img.Rect.Min.X; x < r.img.Rect.Max.X; x++ {
+		for y := r.img.Rect.Min.Y; y < r.img.Rect.Max.Y; y++ {
+			r.img.Set(x, y, r.color)
+		}
+	}
+}
+
+func (base *Rect) NewWindowPanel() {
+	w := base.img.Rect.Dx()
+	h := base.img.Rect.Dy()
+
 	window := NewRect(pw, ph, w-pw, h-ph, dracula)
 	window.fillColor()
 	base.drawOver(window.img)
@@ -44,7 +93,7 @@ func NewPanels(w, h int) (*Rect, *Rect, *Rect) {
 		}
 		base.drawOver(wc.img)
 	} else {
-		wh = 0
+		wh = 10
 	}
 
 	// round corner
@@ -71,35 +120,23 @@ func NewPanels(w, h int) (*Rect, *Rect, *Rect) {
 		base.drawOver(ab.img)
 	}
 
-	// editor panel
-	editor := NewRect(pw, ph+wh, w-pw, h-ph, dracula)
+	return
+}
+
+func (base *Rect) NewEditorPanel() *Rect {
+	editor := NewRect(pw, ph+wh, base.img.Rect.Dx()-pw, base.img.Rect.Dy()-ph, dracula)
 	editor.fillColor()
 	base.drawOver(editor.img)
 
-	// line number panel
-	line := NewRect(pw, ph+wh, pw+lw, h-ph, dracula)
+	return editor
+}
+
+func (base *Rect) NewLinePanel() *Rect {
+	line := NewRect(pw, ph+wh, pw+lw, base.img.Rect.Dy()-ph, dracula)
 	line.fillColor()
 	base.drawOver(line.img)
 
-	return base, editor, line
-}
-
-type Rect struct {
-	img   *image.RGBA
-	color color.RGBA
-}
-
-func NewRect(sx, sy, ex, ey int, c color.RGBA) *Rect {
-	rect := image.Rect(sx, sy, ex, ey)
-	return &Rect{img: image.NewRGBA(rect), color: c}
-}
-
-func (r *Rect) fillColor() {
-	for x := r.img.Rect.Min.X; x < r.img.Rect.Max.X; x++ {
-		for y := r.img.Rect.Min.Y; y < r.img.Rect.Max.Y; y++ {
-			r.img.Set(x, y, r.color)
-		}
-	}
+	return line
 }
 
 // drawOver draw image over r.img

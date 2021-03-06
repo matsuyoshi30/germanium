@@ -20,6 +20,7 @@ import (
 
 type Options struct {
 	Output            string `short:"o" long:"output" default:"output.png" description:"Write output image to specific filepath"`
+	BackgroundColor   string `short:"b" long:"background" default:"#aaaaff" description:"Background color of the image"`
 	Font              string `short:"f" long:"font" default:"Hack-Regular" description:"Specify font eg. 'Hack-Bold'"`
 	ListFonts         bool   `long:"list-fonts" description:"List all available fonts in your system"`
 	NoLineNum         bool   `long:"no-line-number" description:"Hide the line number"`
@@ -76,11 +77,12 @@ USAGE:
     %s [FLAGS] [FILE]
 
 FLAGS:
-    -o, --output <PATH>     Write output image to specific filepath [default: ./output.png]
-    -f, --font <FONT>       Specify font eg. 'Hack-Bold'
-    --list-fonts            List all available fonts in your system
-    --no-line-number        Hide the line number
-    --no-window-access-bar  Hide the window access bar
+    -o, --output <PATH>       Write output image to specific filepath [default: ./output.png]
+    -b, --background <COLOR>  Background color of the image [default: #aaaaff]
+    -f, --font <FONT>         Specify font eg. 'Hack-Bold'
+    --list-fonts              List all available fonts in your system
+    --no-line-number          Hide the line number
+    --no-window-access-bar    Hide the window access bar
 
 AUTHOR:
     matsuyoshi30 <sfbgwm30@gmail.com>
@@ -101,7 +103,15 @@ func run(srcpath string) int {
 	if !opts.NoWindowAccessBar {
 		height += wh
 	}
-	base, editor, line := NewPanels(width, height)
+
+	base, err := NewBase(width, height)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return exitCodeErr
+	}
+	base.NewWindowPanel()
+	editor := base.NewEditorPanel()
+	line := base.NewLinePanel()
 
 	currentDir, err := os.Getwd()
 	if err != nil {
