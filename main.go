@@ -47,10 +47,27 @@ const (
 )
 
 func main() {
-	args, err := flags.NewParser(&opts, flags.HelpFlag|flags.PassDoubleDash).Parse()
+	parser := flags.NewParser(&opts, flags.HelpFlag|flags.PassDoubleDash)
+	parser.Usage = fmt.Sprintf(`USAGE:
+    %s [FLAGS] [FILE]
+
+FLAGS:
+    -o, --output <PATH>       Write output image to specific filepath [default: ./output.png]
+    -b, --background <COLOR>  Background color of the image [default: #aaaaff]
+    -f, --font <FONT>         Specify font eg. 'Hack-Bold'
+    -l, --language <LANG>     The language for syntax highlighting eg. 'go'
+    --list-fonts              List all available fonts in your system
+    --no-line-number          Hide the line number
+    --no-window-access-bar    Hide the window access bar
+
+AUTHOR:
+    matsuyoshi30 <sfbgwm30@gmail.com>
+`, name)
+
+	args, err := parser.Parse()
 	if err != nil {
 		if err, ok := err.(*flags.Error); ok {
-			printUsage()
+			fmt.Println(parser.Usage)
 
 			if err.Type != flags.ErrHelp {
 				fmt.Fprintln(os.Stderr, err.Error())
@@ -97,27 +114,6 @@ func main() {
 	}
 
 	os.Exit(run(r))
-}
-
-func printUsage() {
-	fmt.Fprintf(os.Stderr, `%s %s
-
-USAGE:
-    %s [FLAGS] [FILE]
-
-FLAGS:
-    -o, --output <PATH>       Write output image to specific filepath [default: ./output.png]
-    -b, --background <COLOR>  Background color of the image [default: #aaaaff]
-    -f, --font <FONT>         Specify font eg. 'Hack-Bold'
-    -l, --language <LANG>     The language for syntax highlighting eg. 'go'
-    --list-fonts              List all available fonts in your system
-    --no-line-number          Hide the line number
-    --no-window-access-bar    Hide the window access bar
-
-AUTHOR:
-    matsuyoshi30 <sfbgwm30@gmail.com>
-
-`, name, version, name)
 }
 
 func run(r io.Reader) int {
