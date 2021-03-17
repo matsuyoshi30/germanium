@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -22,13 +23,15 @@ type Options struct {
 	Output            string `short:"o" long:"output" default:"output.png" description:"Write output image to specific filepath"`
 	BackgroundColor   string `short:"b" long:"background" default:"#aaaaff" description:"Background color of the image"`
 	Font              string `short:"f" long:"font" default:"Hack-Regular" description:"Specify font eg. 'Hack-Bold'"`
+	Language          string `short:"l" long:"language" description:"The language for syntax highlighting"`
 	ListFonts         bool   `long:"list-fonts" description:"List all available fonts in your system"`
 	NoLineNum         bool   `long:"no-line-number" description:"Hide the line number"`
 	NoWindowAccessBar bool   `long:"no-window-access-bar" description:"Hide the window access bar"`
 }
 
 var (
-	opts Options
+	opts     Options
+	filename string
 
 	name = "germanium"
 
@@ -38,63 +41,81 @@ var (
 	date    = "?"
 )
 
-const (
-	exitCodeOK = iota
-	exitCodeErr
-)
-
 func main() {
-	args, err := flags.NewParser(&opts, flags.HelpFlag|flags.PassDoubleDash).Parse()
-	if err != nil {
-		if err, ok := err.(*flags.Error); ok {
-			printUsage()
-
-			if err.Type != flags.ErrHelp {
-				fmt.Fprintln(os.Stderr, err.Error())
-			}
-		}
-		os.Exit(exitCodeErr)
-	}
-
-	if opts.ListFonts {
-		listFonts()
-		os.Exit(exitCodeOK)
-	}
-
-	if len(args) != 1 {
-		printUsage()
-		fmt.Fprintln(os.Stderr, "File to read was not provided")
-		os.Exit(exitCodeErr)
-	}
-
-	os.Exit(run(args[0]))
-}
-
-func printUsage() {
-	fmt.Fprintf(os.Stderr, `%s %s
-
-USAGE:
+	parser := flags.NewParser(&opts, flags.HelpFlag|flags.PassDoubleDash)
+	parser.Usage = fmt.Sprintf(`USAGE:
     %s [FLAGS] [FILE]
 
 FLAGS:
     -o, --output <PATH>       Write output image to specific filepath [default: ./output.png]
     -b, --background <COLOR>  Background color of the image [default: #aaaaff]
     -f, --font <FONT>         Specify font eg. 'Hack-Bold'
+    -l, --language <LANG>     The language for syntax highlighting eg. 'go'
     --list-fonts              List all available fonts in your system
     --no-line-number          Hide the line number
     --no-window-access-bar    Hide the window access bar
 
 AUTHOR:
     matsuyoshi30 <sfbgwm30@gmail.com>
+`, name)
 
-`, name, version, name)
+	args, err := parser.Parse()
+	if err != nil {
+		if err, ok := err.(*flags.Error); ok {
+			fmt.Println(parser.Usage)
+
+			if err.Type != flags.ErrHelp {
+				fmt.Fprintln(os.Stderr, err.Error())
+			}
+		}
+		os.Exit(1)
+	}
+
+	if len(args) > 0 {
+		filename = args[0]
+	}
+
+	if opts.ListFonts {
+		listFonts()
+		os.Exit(0)
+	}
+
+	var r io.Reader
+	switch filename {
+	case "", "-":
+		if opts.Language == "" {
+			fmt.Fprintln(os.Stderr, "If you want to use stdin, specify language")
+			os.Exit(1)
+		}
+		r = os.Stdin
+	default:
+		if _, err := os.Stat(filename); os.IsNotExist(err) {
+			fmt.Fprintln(os.Stderr, "file does not exist")
+			os.Exit(1)
+		}
+
+		file, err := os.Open(filename)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		defer func() {
+			if err := file.Close(); err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
+		}()
+		r = file
+	}
+
+	os.Exit(run(r))
 }
 
-func run(srcpath string) int {
-	src, mc, err := reader(srcpath)
+func run(r io.Reader) int {
+	src, mc, err := reader(r)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v: %s\n", err, srcpath)
-		return exitCodeErr
+		fmt.Fprintln(os.Stderr, err)
+		return 1
 	}
 	lc := strings.Count(src, "\n")
 
@@ -107,7 +128,7 @@ func run(srcpath string) int {
 	base, err := NewBase(width, height)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		return exitCodeErr
+		return 1
 	}
 	base.NewWindowPanel()
 	editor := base.NewEditorPanel()
@@ -116,15 +137,20 @@ func run(srcpath string) int {
 	currentDir, err := os.Getwd()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		return exitCodeErr
+		return 1
 	}
 	file, err := os.Create(filepath.Join(currentDir, opts.Output))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		return exitCodeErr
+		return 1
 	}
 
-	lexer := lexers.Get(srcpath)
+	var lexer chroma.Lexer
+	if opts.Language != "" {
+		lexer = lexers.Get(opts.Language)
+	} else {
+		lexer = lexers.Get(filename)
+	}
 	if lexer == nil {
 		lexer = lexers.Fallback
 	}
@@ -136,12 +162,12 @@ func run(srcpath string) int {
 	face, err := LoadFont()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		return exitCodeErr
+		return 1
 	}
 	iterator, err := lexer.Tokenise(nil, src)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		return exitCodeErr
+		return 1
 	}
 
 	drawer := &font.Drawer{
@@ -162,10 +188,10 @@ func run(srcpath string) int {
 	}
 	if err := f.Format(file, style, iterator); err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		return exitCodeErr
+		return 1
 	}
 
-	return exitCodeOK
+	return 0
 }
 
 func listFonts() {
@@ -178,20 +204,8 @@ func listFonts() {
 	}
 }
 
-func reader(srcpath string) (string, int, error) {
-	if _, err := os.Stat(srcpath); os.IsNotExist(err) {
-		return "", -1, fmt.Errorf("file does not exist")
-	}
-
-	file, err := os.Open(srcpath)
-	if err != nil {
-		return "", -1, err
-	}
-	defer func() {
-		file.Close()
-	}()
-
-	scanner := bufio.NewScanner(file)
+func reader(r io.Reader) (string, int, error) {
+	scanner := bufio.NewScanner(r)
 	var ml int
 	b := &strings.Builder{}
 	for scanner.Scan() {
