@@ -19,6 +19,7 @@ FLAGS:
     -o, --output <PATH>       Write output image to specific filepath [default: ./output.png]
     -b, --background <COLOR>  Background color of the image [default: #aaaaff]
     -f, --font <FONT>         Specify font eg. 'Hack-Bold'
+    -l, --language <LANG>     The language for syntax highlighting eg. 'go'
     --list-fonts              List all available fonts in your system
     --no-line-number          Hide the line number
     --no-window-access-bar    Hide the window access bar
@@ -30,6 +31,12 @@ Generate image From file
 
 ```
 germanium -o main.png main.go
+```
+
+Generate image From Stdin (need to add option `-l` or `--language`)
+
+```
+cat main.go | germanium -l go -o main.png -
 ```
 
 Generate image without line number
