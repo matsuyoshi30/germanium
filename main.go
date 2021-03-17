@@ -41,11 +41,6 @@ var (
 	date    = "?"
 )
 
-const (
-	exitCodeOK = iota
-	exitCodeErr
-)
-
 func main() {
 	parser := flags.NewParser(&opts, flags.HelpFlag|flags.PassDoubleDash)
 	parser.Usage = fmt.Sprintf(`USAGE:
@@ -73,7 +68,7 @@ AUTHOR:
 				fmt.Fprintln(os.Stderr, err.Error())
 			}
 		}
-		os.Exit(exitCodeErr)
+		os.Exit(1)
 	}
 
 	if len(args) > 0 {
@@ -82,7 +77,7 @@ AUTHOR:
 
 	if opts.ListFonts {
 		listFonts()
-		os.Exit(exitCodeOK)
+		os.Exit(0)
 	}
 
 	var r io.Reader
@@ -90,24 +85,24 @@ AUTHOR:
 	case "", "-":
 		if opts.Language == "" {
 			fmt.Fprintln(os.Stderr, "If you want to use stdin, specify language")
-			os.Exit(exitCodeErr)
+			os.Exit(1)
 		}
 		r = os.Stdin
 	default:
 		if _, err := os.Stat(filename); os.IsNotExist(err) {
 			fmt.Fprintln(os.Stderr, "file does not exist")
-			os.Exit(exitCodeErr)
+			os.Exit(1)
 		}
 
 		file, err := os.Open(filename)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
-			os.Exit(exitCodeErr)
+			os.Exit(1)
 		}
 		defer func() {
 			if err := file.Close(); err != nil {
 				fmt.Fprintln(os.Stderr, err)
-				os.Exit(exitCodeErr)
+				os.Exit(1)
 			}
 		}()
 		r = file
@@ -120,7 +115,7 @@ func run(r io.Reader) int {
 	src, mc, err := reader(r)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		return exitCodeErr
+		return 1
 	}
 	lc := strings.Count(src, "\n")
 
@@ -133,7 +128,7 @@ func run(r io.Reader) int {
 	base, err := NewBase(width, height)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		return exitCodeErr
+		return 1
 	}
 	base.NewWindowPanel()
 	editor := base.NewEditorPanel()
@@ -142,12 +137,12 @@ func run(r io.Reader) int {
 	currentDir, err := os.Getwd()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		return exitCodeErr
+		return 1
 	}
 	file, err := os.Create(filepath.Join(currentDir, opts.Output))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		return exitCodeErr
+		return 1
 	}
 
 	var lexer chroma.Lexer
@@ -167,12 +162,12 @@ func run(r io.Reader) int {
 	face, err := LoadFont()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		return exitCodeErr
+		return 1
 	}
 	iterator, err := lexer.Tokenise(nil, src)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		return exitCodeErr
+		return 1
 	}
 
 	drawer := &font.Drawer{
@@ -193,10 +188,10 @@ func run(r io.Reader) int {
 	}
 	if err := f.Format(file, style, iterator); err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		return exitCodeErr
+		return 1
 	}
 
-	return exitCodeOK
+	return 0
 }
 
 func listFonts() {
