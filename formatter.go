@@ -15,18 +15,14 @@ import (
 
 type PNGFormatter struct {
 	fontSize   float64
-	width      int
-	height     int
 	drawer     *font.Drawer
 	editor     *image.Rectangle
 	hasLineNum bool
 }
 
-func NewPNGFormatter(fs float64, w, h int, d *font.Drawer, cr *image.Rectangle, l bool) *PNGFormatter {
+func NewPNGFormatter(fs float64, d *font.Drawer, cr *image.Rectangle, l bool) *PNGFormatter {
 	return &PNGFormatter{
 		fontSize:   fs,
-		width:      w,
-		height:     h,
 		drawer:     d,
 		editor:     cr,
 		hasLineNum: l,

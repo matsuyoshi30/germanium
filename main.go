@@ -175,7 +175,7 @@ func run(r io.Reader) int {
 		Face: face,
 	}
 
-	f := NewPNGFormatter(fontSize, width, height, drawer, &editor.img.Rect, !opts.NoLineNum)
+	f := NewPNGFormatter(fontSize, drawer, &editor.img.Rect, !opts.NoLineNum)
 	formatters.Register("png", f)
 
 	formatter := formatters.Get("png")
