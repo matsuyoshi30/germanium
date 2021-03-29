@@ -16,15 +16,15 @@ import (
 type PNGFormatter struct {
 	fontSize   float64
 	drawer     *font.Drawer
-	editor     *image.Rectangle
+	startPoint image.Point
 	hasLineNum bool
 }
 
-func NewPNGFormatter(fs float64, d *font.Drawer, cr *image.Rectangle, l bool) *PNGFormatter {
+func NewPNGFormatter(fs float64, d *font.Drawer, sp image.Point, l bool) *PNGFormatter {
 	return &PNGFormatter{
 		fontSize:   fs,
 		drawer:     d,
-		editor:     cr,
+		startPoint: sp,
 		hasLineNum: l,
 	}
 }
@@ -34,8 +34,8 @@ func (f *PNGFormatter) Format(w io.Writer, style *chroma.Style, iterator chroma.
 }
 
 func (f *PNGFormatter) writePNG(w io.Writer, style *chroma.Style, tokens []chroma.Token) error {
-	left := fixed.Int26_6(f.editor.Min.X * 64)
-	y := fixed.Int26_6(f.editor.Min.Y * 64)
+	left := fixed.Int26_6(f.startPoint.X * 64)
+	y := fixed.Int26_6(f.startPoint.Y * 64)
 
 	lines := chroma.SplitTokensIntoLines(tokens)
 	format := fmt.Sprintf("%%%dd", len(strconv.Itoa(len(lines)))+2)
