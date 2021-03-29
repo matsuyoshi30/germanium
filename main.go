@@ -125,12 +125,11 @@ func run(r io.Reader) int {
 		height += windowHeight
 	}
 
-	base, err := NewBase(width, height)
-	if err != nil {
+	panel := NewPanel(0, 0, width, height)
+	if err := panel.Draw(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1
 	}
-	base.NewWindowPanel()
 
 	currentDir, err := os.Getwd()
 	if err != nil {
@@ -169,7 +168,7 @@ func run(r io.Reader) int {
 	}
 
 	drawer := &font.Drawer{
-		Dst:  base.img,
+		Dst:  panel.img,
 		Src:  image.NewUniform(color.White),
 		Face: face,
 	}
