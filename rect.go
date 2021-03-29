@@ -8,10 +8,10 @@ import (
 )
 
 var (
-	pw = 60
-	ph = 60
-	wh = 20 * 3
-	lw = 40
+	paddingWidth  = 60
+	paddingHeight = 60
+	windowHeight  = 20 * 3
+	lineWidth     = 40
 
 	radius = 10
 
@@ -77,32 +77,32 @@ func (base *Rect) NewWindowPanel() {
 	w := base.img.Rect.Dx()
 	h := base.img.Rect.Dy()
 
-	window := NewRect(pw, ph, w-pw, h-ph, dracula)
+	window := NewRect(paddingWidth, paddingHeight, w-paddingWidth, h-paddingHeight, dracula)
 	window.fillColor()
 	base.drawOver(window.img)
 
 	// window control bar
 	if !opts.NoWindowAccessBar {
-		wc := NewRect(pw, ph, w-pw, ph+wh, dracula)
+		wc := NewRect(paddingWidth, paddingHeight, w-paddingWidth, paddingHeight+windowHeight, dracula)
 		wc.fillColor()
 
 		// control buttons
 		buttons := []color.RGBA{close, minimum, maximum}
 		for i, b := range buttons {
-			wc.drawCircle(image.Point{X: pw + (i * 30) + 20, Y: ph + 10*2}, radius, b)
+			wc.drawCircle(image.Point{X: paddingWidth + (i * 30) + 20, Y: paddingHeight + 10*2}, radius, b)
 		}
 		base.drawOver(wc.img)
 	} else {
-		wh = 10
+		windowHeight = 10
 	}
 
 	// round corner
-	round := NewRect(pw-radius, ph-radius, w-pw+radius, h-ph+radius, dracula)
+	round := NewRect(paddingWidth-radius, paddingHeight-radius, w-paddingWidth+radius, h-paddingHeight+radius, dracula)
 	corners := []image.Point{
-		image.Point{pw, ph},
-		image.Point{w - pw, ph},
-		image.Point{pw, h - ph},
-		image.Point{w - pw, h - ph},
+		image.Point{paddingWidth, paddingHeight},
+		image.Point{w - paddingWidth, paddingHeight},
+		image.Point{paddingWidth, h - paddingHeight},
+		image.Point{w - paddingWidth, h - paddingHeight},
 	}
 	for _, c := range corners {
 		round.drawCircle(c, radius, round.color)
@@ -110,10 +110,10 @@ func (base *Rect) NewWindowPanel() {
 	base.drawOver(round.img)
 
 	aroundbars := []*Rect{
-		NewRect(pw-radius, ph, pw, h-ph, dracula),
-		NewRect(pw, ph-radius, w-pw, ph, dracula),
-		NewRect(w-pw, ph, w-pw+radius, h-ph, dracula),
-		NewRect(pw, h-ph, w-pw, h-ph+radius, dracula),
+		NewRect(paddingWidth-radius, paddingHeight, paddingWidth, h-paddingHeight, dracula),
+		NewRect(paddingWidth, paddingHeight-radius, w-paddingWidth, paddingHeight, dracula),
+		NewRect(w-paddingWidth, paddingHeight, w-paddingWidth+radius, h-paddingHeight, dracula),
+		NewRect(paddingWidth, h-paddingHeight, w-paddingWidth, h-paddingHeight+radius, dracula),
 	}
 	for _, ab := range aroundbars {
 		ab.fillColor()

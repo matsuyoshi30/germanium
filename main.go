@@ -119,10 +119,10 @@ func run(r io.Reader) int {
 	}
 	lc := strings.Count(src, "\n")
 
-	width := mc*int(fontSize) + pw*2 + lw
-	height := (lc+1)*int(fontSize) + lc*int(fontSize*0.25) + ph*2
+	width := mc*int(fontSize) + paddingWidth*2 + lineWidth
+	height := (lc+1)*int(fontSize) + lc*int(fontSize*0.25) + paddingHeight*2
 	if !opts.NoWindowAccessBar {
-		height += wh
+		height += windowHeight
 	}
 
 	base, err := NewBase(width, height)
@@ -173,7 +173,7 @@ func run(r io.Reader) int {
 		Src:  image.NewUniform(color.White),
 		Face: face,
 	}
-	sp := image.Point{X: pw, Y: ph + wh}
+	sp := image.Point{X: paddingWidth, Y: paddingHeight + windowHeight}
 	f := NewPNGFormatter(fontSize, drawer, sp, !opts.NoLineNum)
 	formatters.Register("png", f)
 
