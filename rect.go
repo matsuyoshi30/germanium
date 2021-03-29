@@ -131,14 +131,6 @@ func (base *Rect) NewEditorPanel() *Rect {
 	return editor
 }
 
-func (base *Rect) NewLinePanel() *Rect {
-	line := NewRect(pw, ph+wh, pw+lw, base.img.Rect.Dy()-ph, dracula)
-	line.fillColor()
-	base.drawOver(line.img)
-
-	return line
-}
-
 // drawOver draw image over r.img
 func (r *Rect) drawOver(img *image.RGBA) {
 	draw.Draw(r.img, r.img.Bounds(), img, image.Point{0, 0}, draw.Over)

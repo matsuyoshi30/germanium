@@ -14,21 +14,22 @@ import (
 )
 
 type PNGFormatter struct {
-	fontSize float64
-	width    int
-	height   int
-	drawer   *font.Drawer
-	editor   *image.Rectangle
-	line     *image.Rectangle
+	fontSize   float64
+	width      int
+	height     int
+	drawer     *font.Drawer
+	editor     *image.Rectangle
+	hasLineNum bool
 }
 
-func NewPNGFormatter(fs float64, w, h int, d *font.Drawer, cr *image.Rectangle) *PNGFormatter {
+func NewPNGFormatter(fs float64, w, h int, d *font.Drawer, cr *image.Rectangle, l bool) *PNGFormatter {
 	return &PNGFormatter{
-		fontSize: fs,
-		width:    w,
-		height:   h,
-		drawer:   d,
-		editor:   cr,
+		fontSize:   fs,
+		width:      w,
+		height:     h,
+		drawer:     d,
+		editor:     cr,
+		hasLineNum: l,
 	}
 }
 
@@ -49,7 +50,7 @@ func (f *PNGFormatter) writePNG(w io.Writer, style *chroma.Style, tokens []chrom
 			y += fixed.I(int(f.fontSize * 0.25)) // padding between lines
 		}
 
-		if f.line != nil {
+		if f.hasLineNum {
 			f.drawer.Dot.X = left
 			f.drawer.Dot.Y = y
 			f.drawer.Src = image.NewUniform(color.White)
@@ -57,7 +58,7 @@ func (f *PNGFormatter) writePNG(w io.Writer, style *chroma.Style, tokens []chrom
 		}
 
 		sx := left + fixed.Int26_6(int(f.fontSize)*64*2)
-		if f.line != nil {
+		if f.hasLineNum {
 			sx += fixed.Int26_6(int(f.fontSize) * 64)
 		} else {
 			sx -= fixed.Int26_6(int(f.fontSize) * 64)

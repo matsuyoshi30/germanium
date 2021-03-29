@@ -132,7 +132,6 @@ func run(r io.Reader) int {
 	}
 	base.NewWindowPanel()
 	editor := base.NewEditorPanel()
-	line := base.NewLinePanel()
 
 	currentDir, err := os.Getwd()
 	if err != nil {
@@ -176,10 +175,7 @@ func run(r io.Reader) int {
 		Face: face,
 	}
 
-	f := NewPNGFormatter(fontSize, width, height, drawer, &editor.img.Rect)
-	if !opts.NoLineNum {
-		f.line = &line.img.Rect
-	}
+	f := NewPNGFormatter(fontSize, width, height, drawer, &editor.img.Rect, !opts.NoLineNum)
 	formatters.Register("png", f)
 
 	formatter := formatters.Get("png")
