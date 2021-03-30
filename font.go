@@ -18,10 +18,10 @@ var (
 	font_hack []byte
 )
 
-func LoadFont() (font.Face, error) {
+func LoadFont(font string) (font.Face, error) {
 	fontData := font_hack
 	if opts.Font != "Hack-Regular" {
-		fontPath, err := findfont.Find(opts.Font + ".ttf")
+		fontPath, err := findfont.Find(font + ".ttf")
 		if err != nil {
 			return nil, err
 		}

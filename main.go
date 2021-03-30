@@ -110,7 +110,7 @@ func run(r io.Reader) int {
 		fmt.Fprintln(os.Stderr, err)
 		return 1
 	}
-	file, err := os.Create(filepath.Join(currentDir, opts.Output))
+	out, err := os.Create(filepath.Join(currentDir, opts.Output))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1
@@ -123,18 +123,18 @@ func run(r io.Reader) int {
 	}
 	lc := strings.Count(src, "\n")
 
-	width := m*int(fontSize) + paddingWidth*2 + lineWidth
-	height := (lc+1)*int(fontSize) + lc*int(fontSize*0.25) + paddingHeight*2
+	w := (m * int(fontSize)) + (paddingWidth * 2) + lineWidth
+	h := (lc * int((fontSize * 1.25))) + int(fontSize) + (paddingHeight * 2)
 	if !opts.NoWindowAccessBar {
-		height += windowHeight
+		h += windowHeight
 	}
 
-	panel := NewPanel(0, 0, width, height)
+	panel := NewPanel(0, 0, w, h)
 	if err := panel.Draw(opts.BackgroundColor, !opts.NoWindowAccessBar); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1
 	}
-	if err := panel.Label(file, src, opts.Language, !opts.NoLineNum); err != nil {
+	if err := panel.Label(out, src, opts.Language, opts.Font, !opts.NoLineNum); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1
 	}

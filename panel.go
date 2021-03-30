@@ -35,7 +35,7 @@ type Drawer interface {
 }
 
 type Labeler interface {
-	Label(io.Writer, string, string, bool) error
+	Label(io.Writer, string, string, string, bool) error
 }
 
 type Panel struct {
@@ -180,9 +180,9 @@ func (p *Panel) drawCircle(center image.Point, radius int, c color.RGBA) {
 }
 
 // Label labels highlighted source code on panel
-func (p *Panel) Label(out io.Writer, src, language string, hasLineNum bool) error {
+func (p *Panel) Label(out io.Writer, src, language, fontname string, hasLineNum bool) error {
 	var lexer chroma.Lexer
-	if opts.Language != "" {
+	if language != "" {
 		lexer = lexers.Get(language)
 	} else {
 		lexer = lexers.Get(filename)
@@ -197,7 +197,7 @@ func (p *Panel) Label(out io.Writer, src, language string, hasLineNum bool) erro
 		style = styles.Fallback
 	}
 
-	face, err := LoadFont()
+	face, err := LoadFont(fontname)
 	if err != nil {
 		return err
 	}
