@@ -2,7 +2,9 @@ package main
 
 import (
 	_ "embed"
+	"fmt"
 	"os"
+	"path/filepath"
 
 	findfont "github.com/flopp/go-findfont"
 	"github.com/golang/freetype/truetype"
@@ -36,4 +38,14 @@ func LoadFont() (font.Face, error) {
 	}
 
 	return truetype.NewFace(ft, &truetype.Options{Size: fontSize}), nil
+}
+
+func ListFonts() {
+	for _, path := range findfont.List() {
+		base := filepath.Base(path)
+		ext := filepath.Ext(path)
+		if ext == ".ttf" {
+			fmt.Println(base[0 : len(base)-len(ext)])
+		}
+	}
 }

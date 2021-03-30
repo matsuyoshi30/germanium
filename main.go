@@ -14,7 +14,6 @@ import (
 	"github.com/alecthomas/chroma/formatters"
 	"github.com/alecthomas/chroma/lexers"
 	"github.com/alecthomas/chroma/styles"
-	findfont "github.com/flopp/go-findfont"
 	flags "github.com/jessevdk/go-flags"
 	"golang.org/x/image/font"
 )
@@ -76,7 +75,7 @@ AUTHOR:
 	}
 
 	if opts.ListFonts {
-		listFonts()
+		ListFonts()
 		os.Exit(0)
 	}
 
@@ -186,16 +185,6 @@ func run(r io.Reader) int {
 	}
 
 	return 0
-}
-
-func listFonts() {
-	for _, path := range findfont.List() {
-		base := filepath.Base(path)
-		ext := filepath.Ext(path)
-		if ext == ".ttf" {
-			fmt.Println(base[0 : len(base)-len(ext)])
-		}
-	}
 }
 
 func reader(r io.Reader) (string, int, error) {
