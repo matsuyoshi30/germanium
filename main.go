@@ -3,19 +3,13 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"image"
-	"image/color"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+	"unicode/utf8"
 
-	"github.com/alecthomas/chroma"
-	"github.com/alecthomas/chroma/formatters"
-	"github.com/alecthomas/chroma/lexers"
-	"github.com/alecthomas/chroma/styles"
 	flags "github.com/jessevdk/go-flags"
-	"golang.org/x/image/font"
 )
 
 type Options struct {
@@ -111,25 +105,6 @@ AUTHOR:
 }
 
 func run(r io.Reader) int {
-	src, mc, err := reader(r)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		return 1
-	}
-	lc := strings.Count(src, "\n")
-
-	width := mc*int(fontSize) + paddingWidth*2 + lineWidth
-	height := (lc+1)*int(fontSize) + lc*int(fontSize*0.25) + paddingHeight*2
-	if !opts.NoWindowAccessBar {
-		height += windowHeight
-	}
-
-	panel := NewPanel(0, 0, width, height)
-	if err := panel.Draw(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		return 1
-	}
-
 	currentDir, err := os.Getwd()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -141,45 +116,25 @@ func run(r io.Reader) int {
 		return 1
 	}
 
-	var lexer chroma.Lexer
-	if opts.Language != "" {
-		lexer = lexers.Get(opts.Language)
-	} else {
-		lexer = lexers.Get(filename)
-	}
-	if lexer == nil {
-		lexer = lexers.Fallback
-	}
-	lexer = chroma.Coalesce(lexer)
-	style := styles.Get("dracula")
-	if style == nil {
-		style = styles.Fallback
-	}
-	face, err := LoadFont()
+	src, m, err := readString(r)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1
 	}
-	iterator, err := lexer.Tokenise(nil, src)
-	if err != nil {
+	lc := strings.Count(src, "\n")
+
+	width := m*int(fontSize) + paddingWidth*2 + lineWidth
+	height := (lc+1)*int(fontSize) + lc*int(fontSize*0.25) + paddingHeight*2
+	if !opts.NoWindowAccessBar {
+		height += windowHeight
+	}
+
+	panel := NewPanel(0, 0, width, height)
+	if err := panel.Draw(opts.BackgroundColor, !opts.NoWindowAccessBar); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1
 	}
-
-	drawer := &font.Drawer{
-		Dst:  panel.img,
-		Src:  image.NewUniform(color.White),
-		Face: face,
-	}
-	sp := image.Point{X: paddingWidth, Y: paddingHeight + windowHeight}
-	f := NewPNGFormatter(fontSize, drawer, sp, !opts.NoLineNum)
-	formatters.Register("png", f)
-
-	formatter := formatters.Get("png")
-	if formatter == nil {
-		formatter = formatters.Fallback
-	}
-	if err := f.Format(file, style, iterator); err != nil {
+	if err := panel.Label(file, src, opts.Language, !opts.NoLineNum); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1
 	}
@@ -187,14 +142,16 @@ func run(r io.Reader) int {
 	return 0
 }
 
-func reader(r io.Reader) (string, int, error) {
-	scanner := bufio.NewScanner(r)
-	var ml int
+// readString reads from r and returns contents as string, maximum line length of r, and error
+func readString(r io.Reader) (string, int, error) {
 	b := &strings.Builder{}
+	m := 0
+
+	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		str := scanner.Text()
-		if ml < len(str) {
-			ml = len(str)
+		if m < utf8.RuneCountInString(str) {
+			m = utf8.RuneCountInString(str)
 		}
 
 		b.WriteString(str)
@@ -202,8 +159,8 @@ func reader(r io.Reader) (string, int, error) {
 	}
 
 	if err := scanner.Err(); err != nil {
-		return "", -1, err
+		return "", m, err
 	}
 
-	return b.String(), ml, nil
+	return b.String(), m, nil
 }

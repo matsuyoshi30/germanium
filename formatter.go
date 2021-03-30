@@ -13,6 +13,10 @@ import (
 	"golang.org/x/image/math/fixed"
 )
 
+type Formatter interface {
+	Format(w io.Writer, style *chroma.Style, iterator chroma.Iterator) error
+}
+
 type PNGFormatter struct {
 	fontSize   float64
 	drawer     *font.Drawer
@@ -30,10 +34,10 @@ func NewPNGFormatter(fs float64, d *font.Drawer, sp image.Point, l bool) *PNGFor
 }
 
 func (f *PNGFormatter) Format(w io.Writer, style *chroma.Style, iterator chroma.Iterator) error {
-	return f.writePNG(w, style, iterator.Tokens())
+	return f.format(w, style, iterator.Tokens())
 }
 
-func (f *PNGFormatter) writePNG(w io.Writer, style *chroma.Style, tokens []chroma.Token) error {
+func (f *PNGFormatter) format(w io.Writer, style *chroma.Style, tokens []chroma.Token) error {
 	left := fixed.Int26_6(f.startPoint.X * 64)
 	y := fixed.Int26_6(f.startPoint.Y * 64)
 
@@ -71,11 +75,12 @@ func (f *PNGFormatter) writePNG(w io.Writer, style *chroma.Style, tokens []chrom
 					continue
 				}
 				if c == '\t' {
-					f.drawer.Dot.X += fixed.Int26_6(float64(f.drawer.MeasureString(" ")) * 4.0)
+					f.drawer.Dot.X += fixed.Int26_6(f.drawer.MeasureString(" ") * 4)
 					continue
 				}
+				px := float64(f.drawer.MeasureString(fmt.Sprintf("%c", c))) / f.fontSize
 
-				f.drawer.Dot.X += fixed.Int26_6(float64(f.drawer.MeasureString(fmt.Sprintf("%c", c))) / f.fontSize)
+				f.drawer.Dot.X += fixed.Int26_6(px)
 				f.drawer.Dot.Y = y
 				f.drawer.DrawString(fmt.Sprintf("%c", c))
 			}

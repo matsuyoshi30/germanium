@@ -4,6 +4,13 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
+	"io"
+
+	"github.com/alecthomas/chroma"
+	"github.com/alecthomas/chroma/formatters"
+	"github.com/alecthomas/chroma/lexers"
+	"github.com/alecthomas/chroma/styles"
+	"golang.org/x/image/font"
 )
 
 var (
@@ -27,16 +34,21 @@ type Drawer interface {
 	Draw() error
 }
 
+type Labeler interface {
+	Label(io.Writer, string, string, bool) error
+}
+
 type Panel struct {
-	img *image.RGBA
+	img       *image.RGBA
+	Formatter Formatter
 }
 
 func NewPanel(sx, sy, ex, ey int) *Panel {
 	return &Panel{img: image.NewRGBA(image.Rect(sx, sy, ex, ey))}
 }
 
-func (base *Panel) Draw() error {
-	bg, err := ParseHexColor(opts.BackgroundColor)
+func (base *Panel) Draw(backgroundColor string, hasWindowAccessBar bool) error {
+	bg, err := ParseHexColor(backgroundColor)
 	if err != nil {
 		return err
 	}
@@ -50,7 +62,7 @@ func (base *Panel) Draw() error {
 	base.drawWindowPanel(width, height)
 
 	// window control bar
-	if !opts.NoWindowAccessBar {
+	if hasWindowAccessBar {
 		base.drawWindowControlPanel(width, height)
 	} else {
 		windowHeight = 10
@@ -116,7 +128,7 @@ func (p *Panel) drawAroundBar(w, h int) {
 	}
 }
 
-// fillCOlor set color per pixel
+// fillColor set color per pixel
 func (p *Panel) fillColor(c color.RGBA) {
 	for x := p.img.Rect.Min.X; x < p.img.Rect.Max.X; x++ {
 		for y := p.img.Rect.Min.Y; y < p.img.Rect.Max.Y; y++ {
@@ -165,4 +177,53 @@ func (p *Panel) drawCircle(center image.Point, radius int, c color.RGBA) {
 			p.img.Set(x, center.Y-cy, c)
 		}
 	}
+}
+
+// Label labels highlighted source code on panel
+func (p *Panel) Label(out io.Writer, src, language string, hasLineNum bool) error {
+	var lexer chroma.Lexer
+	if opts.Language != "" {
+		lexer = lexers.Get(language)
+	} else {
+		lexer = lexers.Get(filename)
+	}
+	if lexer == nil {
+		lexer = lexers.Fallback
+	}
+	lexer = chroma.Coalesce(lexer)
+
+	style := styles.Get("dracula")
+	if style == nil {
+		style = styles.Fallback
+	}
+
+	face, err := LoadFont()
+	if err != nil {
+		return err
+	}
+
+	iterator, err := lexer.Tokenise(nil, src)
+	if err != nil {
+		return err
+	}
+
+	drawer := &font.Drawer{
+		Dst:  p.img,
+		Src:  image.NewUniform(color.White),
+		Face: face,
+	}
+	sp := image.Point{X: paddingWidth, Y: paddingHeight + windowHeight}
+	p.Formatter = NewPNGFormatter(fontSize, drawer, sp, hasLineNum)
+	formatters.Register("png", p.Formatter)
+
+	formatter := formatters.Get("png")
+	if formatter == nil {
+		formatter = formatters.Fallback
+	}
+
+	if err := p.Formatter.Format(out, style, iterator); err != nil {
+		return err
+	}
+
+	return nil
 }
