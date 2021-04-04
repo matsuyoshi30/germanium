@@ -10,6 +10,7 @@ import (
 	"unicode/utf8"
 
 	flags "github.com/jessevdk/go-flags"
+	"golang.org/x/image/font"
 )
 
 type Options struct {
@@ -116,6 +117,12 @@ func run(r io.Reader) int {
 		return 1
 	}
 
+	face, err := LoadFont(opts.Font)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return 1
+	}
+
 	src, m, err := readString(r)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -134,7 +141,7 @@ func run(r io.Reader) int {
 		fmt.Fprintln(os.Stderr, err)
 		return 1
 	}
-	if err := panel.Label(out, src, opts.Language, opts.Font, !opts.NoLineNum); err != nil {
+	if err := panel.Label(out, src, opts.Language, face, !opts.NoLineNum); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1
 	}
