@@ -10,6 +10,7 @@ import (
 	"unicode/utf8"
 
 	flags "github.com/jessevdk/go-flags"
+	"golang.org/x/image/font"
 )
 
 type Options struct {
@@ -116,14 +117,20 @@ func run(r io.Reader) int {
 		return 1
 	}
 
-	src, m, err := readString(r)
+	face, err := LoadFont(opts.Font)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return 1
+	}
+
+	src, m, err := readString(r, face)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1
 	}
 	lc := strings.Count(src, "\n")
 
-	w := (m * int(fontSize)) + (paddingWidth * 2) + lineWidth
+	w := m + (paddingWidth * 2) + lineWidth
 	h := (lc * int((fontSize * 1.25))) + int(fontSize) + (paddingHeight * 2)
 	if !opts.NoWindowAccessBar {
 		h += windowHeight
@@ -134,7 +141,7 @@ func run(r io.Reader) int {
 		fmt.Fprintln(os.Stderr, err)
 		return 1
 	}
-	if err := panel.Label(out, src, opts.Language, opts.Font, !opts.NoLineNum); err != nil {
+	if err := panel.Label(out, src, opts.Language, face, !opts.NoLineNum); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1
 	}
@@ -142,25 +149,27 @@ func run(r io.Reader) int {
 	return 0
 }
 
-// readString reads from r and returns contents as string, maximum line length of r, and error
-func readString(r io.Reader) (string, int, error) {
+// readString reads from r and returns contents as string and calculates width of editor
+func readString(r io.Reader, face font.Face) (string, int, error) {
 	b := &strings.Builder{}
-	m := 0
+	m := ""
 
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		str := scanner.Text()
-		if m < utf8.RuneCountInString(str) {
-			m = utf8.RuneCountInString(str)
+		if utf8.RuneCountInString(m) < utf8.RuneCountInString(str) {
+			m = str
 		}
 
 		b.WriteString(str)
 		b.WriteString("\n")
 	}
+	m = strings.ReplaceAll(m, "\t", "    ")
+	m += " " // between line and code
 
 	if err := scanner.Err(); err != nil {
-		return "", m, err
+		return "", -1, err
 	}
 
-	return b.String(), m, nil
+	return b.String(), font.MeasureString(face, " ").Ceil() * len(m), nil
 }

@@ -42,7 +42,7 @@ func (f *PNGFormatter) format(w io.Writer, style *chroma.Style, tokens []chroma.
 	y := fixed.Int26_6(f.startPoint.Y * 64)
 
 	lines := chroma.SplitTokensIntoLines(tokens)
-	format := fmt.Sprintf("%%%dd", len(strconv.Itoa(len(lines)))+2)
+	format := fmt.Sprintf("%%%dd", len(strconv.Itoa(len(lines)))+1)
 
 	for i, tokens := range lines {
 		y += fixed.I(int(f.fontSize))
@@ -57,11 +57,9 @@ func (f *PNGFormatter) format(w io.Writer, style *chroma.Style, tokens []chroma.
 			f.drawer.DrawString(fmt.Sprintf(format, i+1))
 		}
 
-		sx := left + fixed.Int26_6(int(f.fontSize)*64*2)
+		sx := left + f.drawer.MeasureString(" ")
 		if f.hasLineNum {
-			sx += fixed.Int26_6(int(f.fontSize) * 64)
-		} else {
-			sx -= fixed.Int26_6(int(f.fontSize) * 64)
+			sx += fixed.I(f.drawer.MeasureString(" ").Round() * (len(strconv.Itoa(len(lines))) + 1))
 		}
 
 		f.drawer.Dot.X = sx
@@ -75,10 +73,11 @@ func (f *PNGFormatter) format(w io.Writer, style *chroma.Style, tokens []chroma.
 					continue
 				}
 				if c == '\t' {
-					f.drawer.Dot.X += fixed.Int26_6(f.drawer.MeasureString(" ") * 4)
+					f.drawer.Dot.X += f.drawer.MeasureString("    ")
 					continue
 				}
-				px := float64(f.drawer.MeasureString(fmt.Sprintf("%c", c))) / f.fontSize
+
+				px := f.drawer.MeasureString(fmt.Sprintf("%c", c)).Round()
 
 				f.drawer.Dot.X += fixed.Int26_6(px)
 				f.drawer.Dot.Y = y
