@@ -68,7 +68,7 @@ yay germanium
 
 ```
 git clone https://github.com/matsuyoshi30/germanium
-cd germanium && go install
+cd cmd/germanium && go install
 ```
 
 #### Requirements
