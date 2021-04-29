@@ -8,9 +8,13 @@ before:
     - go mod tidy
 
 builds:
-  - main: .
+  - main: ./cmd/germanium
     binary: germanium
-    ldflags: -s -w -X main.version={{.Version}} -X main.commit={{.ShortCommit}} -X main.date={{.Date}}
+    ldflags:
+      - -s -w
+      - -X github.com/matsuyoshi30/germanium/cli.version={{.Version}}
+      - -X github.com/matsuyoshi30/germanium/cli.commit={{.ShortCommit}}
+      - -X github.com/matsuyoshi30/germanium/cli.date={{.Date}}
 
 archives:
   - replacements:
@@ -24,3 +28,6 @@ archives:
 
 release:
   prerelease: auto
+
+changelog:
+  skip: true
