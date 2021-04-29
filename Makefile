@@ -6,7 +6,7 @@ BINARY_NAME=germanium
 
 all: build test
 build:
-	$(GOBUILD) -o $(BINARY_NAME) -v
+	$(GOBUILD) -o $(BINARY_NAME) -v ./cmd/$(BINARY_NAME)
 test: build
 	$(GOTEST) -v ./...
 gentest:
@@ -14,6 +14,3 @@ gentest:
 clean:
 	$(GOCLEAN)
 	rm -f $(BINARY_NAME)
-run:
-	$(GOBUILD) -o $(BINARY_NAME) -v ./...
-	./$(BINARY_NAME)

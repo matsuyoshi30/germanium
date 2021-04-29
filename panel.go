@@ -1,4 +1,4 @@
-package main
+package germanium
 
 import (
 	"image"
@@ -29,6 +29,16 @@ var (
 	minimum = color.RGBA{255, 189, 46, 255}
 	maximum = color.RGBA{39, 201, 63, 255}
 )
+
+func CalcSize(m, lc int, noWindowAccessBar bool) (int, int) {
+	w := m + (paddingWidth * 2) + lineWidth
+	h := (lc * int((fontSize * 1.25))) + int(fontSize) + (paddingHeight * 2)
+	if !noWindowAccessBar {
+		h += windowHeight
+	}
+
+	return w, h
+}
 
 type Drawer interface {
 	Draw() error
@@ -180,7 +190,7 @@ func (p *Panel) drawCircle(center image.Point, radius int, c color.RGBA) {
 }
 
 // Label labels highlighted source code on panel
-func (p *Panel) Label(out io.Writer, src, language string, face font.Face, hasLineNum bool) error {
+func (p *Panel) Label(out io.Writer, filename, src, language string, face font.Face, hasLineNum bool) error {
 	var lexer chroma.Lexer
 	if language != "" {
 		lexer = lexers.Get(language)
