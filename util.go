@@ -29,16 +29,15 @@ func ReadString(r io.Reader, face font.Face) (string, error) {
 	return b.String(), nil
 }
 
-func MaxLineLength(s string) int {
+func MaxLine(s string) string {
 	var ret string
 	for _, line := range strings.Split(s, "\n") {
 		if utf8.RuneCountInString(ret) < utf8.RuneCountInString(line) {
 			ret = line
 		}
 	}
-	ret = strings.ReplaceAll(ret, "\t", "    ") + " " // between line and code
 
-	return len(ret)
+	return ret
 }
 
 func ParseHexColor(s string) (color.RGBA, error) {

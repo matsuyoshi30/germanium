@@ -5,6 +5,7 @@ import (
 	"image/color"
 	"image/draw"
 	"io"
+	"strings"
 
 	"github.com/alecthomas/chroma"
 	"github.com/alecthomas/chroma/formatters"
@@ -30,14 +31,17 @@ var (
 	maximum = color.RGBA{39, 201, 63, 255}
 )
 
-func CalcSize(m, lc int, noWindowAccessBar bool) (int, int) {
-	w := m + (paddingWidth * 2) + lineWidth
-	h := (lc * int((fontSize * 1.25))) + int(fontSize) + (paddingHeight * 2)
+func CalcWidth(maxLineLen int) int {
+	return maxLineLen + (paddingWidth * 2) + lineWidth
+}
+
+func CalcHeight(lineCount int, noWindowAccessBar bool) int {
+	h := (lineCount * int((fontSize * 1.25))) + int(fontSize) + (paddingHeight * 2)
 	if !noWindowAccessBar {
 		h += windowHeight
 	}
 
-	return w, h
+	return h
 }
 
 type Drawer interface {
@@ -46,6 +50,17 @@ type Drawer interface {
 
 type Labeler interface {
 	Label(io.Writer, string, string, string, bool) error
+}
+
+func NewImage(src string, face font.Face, noWindowAccessBar bool) *Panel {
+	ml := MaxLine(src)
+	ml = strings.ReplaceAll(ml, "\t", "    ") // replace tab to whitespace
+	ml = ml + " "
+
+	width := CalcWidth(font.MeasureString(face, " ").Ceil() * len(ml))
+	height := CalcHeight(strings.Count(src, "\n"), noWindowAccessBar)
+
+	return NewPanel(0, 0, width, height)
 }
 
 type Panel struct {

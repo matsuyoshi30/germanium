@@ -5,7 +5,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 
 	flags "github.com/jessevdk/go-flags"
 	"github.com/matsuyoshi30/germanium"
@@ -95,10 +94,8 @@ func run(r io.Reader, filename string) error {
 		return err
 	}
 
-	w, h := germanium.CalcSize(germanium.MaxLineLength(src), strings.Count(src, "\n"), opts.NoWindowAccessBar)
-
-	panel := germanium.NewPanel(0, 0, w, h)
-	if err := panel.Draw(opts.BackgroundColor, !opts.NoWindowAccessBar); err != nil {
+	image := germanium.NewImage(src, face, opts.NoWindowAccessBar)
+	if err := image.Draw(opts.BackgroundColor, opts.NoWindowAccessBar); err != nil {
 		return err
 	}
 	if err := panel.Label(out, filename, src, opts.Language, face, !opts.NoLineNum); err != nil {
