@@ -1,10 +1,11 @@
-package main
+package germanium
 
 import (
 	"image"
 	"image/color"
 	"image/draw"
 	"io"
+	"strings"
 
 	"github.com/alecthomas/chroma"
 	"github.com/alecthomas/chroma/formatters"
@@ -30,12 +31,36 @@ var (
 	maximum = color.RGBA{39, 201, 63, 255}
 )
 
+func CalcWidth(maxLineLen int) int {
+	return maxLineLen + (paddingWidth * 2) + lineWidth
+}
+
+func CalcHeight(lineCount int, noWindowAccessBar bool) int {
+	h := (lineCount * int((fontSize * 1.25))) + int(fontSize) + (paddingHeight * 2)
+	if !noWindowAccessBar {
+		h += windowHeight
+	}
+
+	return h
+}
+
 type Drawer interface {
 	Draw() error
 }
 
 type Labeler interface {
 	Label(io.Writer, string, string, string, bool) error
+}
+
+func NewImage(src string, face font.Face, noWindowAccessBar bool) *Panel {
+	ml := MaxLine(src)
+	ml = strings.ReplaceAll(ml, "\t", "    ") // replace tab to whitespace
+	ml = ml + " "
+
+	width := CalcWidth(font.MeasureString(face, " ").Ceil() * len(ml))
+	height := CalcHeight(strings.Count(src, "\n"), noWindowAccessBar)
+
+	return NewPanel(0, 0, width, height)
 }
 
 type Panel struct {
@@ -47,7 +72,7 @@ func NewPanel(sx, sy, ex, ey int) *Panel {
 	return &Panel{img: image.NewRGBA(image.Rect(sx, sy, ex, ey))}
 }
 
-func (base *Panel) Draw(backgroundColor string, hasWindowAccessBar bool) error {
+func (base *Panel) Draw(backgroundColor string, noWindowAccessBar bool) error {
 	bg, err := ParseHexColor(backgroundColor)
 	if err != nil {
 		return err
@@ -62,10 +87,10 @@ func (base *Panel) Draw(backgroundColor string, hasWindowAccessBar bool) error {
 	base.drawWindowPanel(width, height)
 
 	// window control bar
-	if hasWindowAccessBar {
-		base.drawWindowControlPanel(width, height)
-	} else {
+	if noWindowAccessBar {
 		windowHeight = 10
+	} else {
+		base.drawWindowControlPanel(width, height)
 	}
 
 	// round corner
@@ -180,7 +205,7 @@ func (p *Panel) drawCircle(center image.Point, radius int, c color.RGBA) {
 }
 
 // Label labels highlighted source code on panel
-func (p *Panel) Label(out io.Writer, src, language string, face font.Face, hasLineNum bool) error {
+func (p *Panel) Label(out io.Writer, filename, src, language string, face font.Face, hasLineNum bool) error {
 	var lexer chroma.Lexer
 	if language != "" {
 		lexer = lexers.Get(language)
