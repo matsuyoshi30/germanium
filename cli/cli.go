@@ -90,13 +90,12 @@ func run(r io.Reader, filename string) error {
 		return err
 	}
 
-	src, m, err := germanium.ReadString(r, face)
+	src, err := germanium.ReadString(r, face)
 	if err != nil {
 		return err
 	}
-	lc := strings.Count(src, "\n")
 
-	w, h := germanium.CalcSize(m, lc, opts.NoWindowAccessBar)
+	w, h := germanium.CalcSize(germanium.MaxLineLength(src), strings.Count(src, "\n"), opts.NoWindowAccessBar)
 
 	panel := germanium.NewPanel(0, 0, w, h)
 	if err := panel.Draw(opts.BackgroundColor, !opts.NoWindowAccessBar); err != nil {
