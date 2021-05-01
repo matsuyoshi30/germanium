@@ -72,7 +72,7 @@ func NewPanel(sx, sy, ex, ey int) *Panel {
 	return &Panel{img: image.NewRGBA(image.Rect(sx, sy, ex, ey))}
 }
 
-func (base *Panel) Draw(backgroundColor string, hasWindowAccessBar bool) error {
+func (base *Panel) Draw(backgroundColor string, noWindowAccessBar bool) error {
 	bg, err := ParseHexColor(backgroundColor)
 	if err != nil {
 		return err
@@ -87,10 +87,10 @@ func (base *Panel) Draw(backgroundColor string, hasWindowAccessBar bool) error {
 	base.drawWindowPanel(width, height)
 
 	// window control bar
-	if hasWindowAccessBar {
-		base.drawWindowControlPanel(width, height)
-	} else {
+	if noWindowAccessBar {
 		windowHeight = 10
+	} else {
+		base.drawWindowControlPanel(width, height)
 	}
 
 	// round corner

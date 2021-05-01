@@ -98,7 +98,7 @@ func run(r io.Reader, filename string) error {
 	if err := image.Draw(opts.BackgroundColor, opts.NoWindowAccessBar); err != nil {
 		return err
 	}
-	if err := panel.Label(out, filename, src, opts.Language, face, !opts.NoLineNum); err != nil {
+	if err := image.Label(out, filename, src, opts.Language, face, !opts.NoLineNum); err != nil {
 		return err
 	}
 
