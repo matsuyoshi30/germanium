@@ -11,6 +11,7 @@ FLAGS:
     --list-fonts              List all available fonts in your system
     --no-line-number          Hide the line number
     --no-window-access-bar    Hide the window access bar
+    -v, --version             Show Version
 
 AUTHOR:
     matsuyoshi30 <sfbgwm30@gmail.com>
