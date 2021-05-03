@@ -2,16 +2,14 @@ name: test
 on:
   push:
     branches:
-    - master
+    - main
     paths-ignore:
     - 'README.md'
-    - '.github/'
+    - '.github/**'
   pull_request:
-    branches:
-    - master
     paths-ignore:
     - 'README.md'
-    - '.github/'
+    - '.github/**'
 jobs:
   test:
     strategy:
