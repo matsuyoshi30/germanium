@@ -36,6 +36,11 @@ func Run() (err error) {
 		return nil
 	}
 
+	if opts.ShowVersion {
+		fmt.Println(name, version)
+		return nil
+	}
+
 	var filename string
 	if len(args) > 0 {
 		filename = args[0]

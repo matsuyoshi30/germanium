@@ -8,6 +8,7 @@ type Options struct {
 	ListFonts         bool   `long:"list-fonts" description:"List all available fonts in your system"`
 	NoLineNum         bool   `long:"no-line-number" description:"Hide the line number"`
 	NoWindowAccessBar bool   `long:"no-window-access-bar" description:"Hide the window access bar"`
+	ShowVersion       bool   `short:"v" long:"version" description:"Show version"`
 }
 
 var opts Options
