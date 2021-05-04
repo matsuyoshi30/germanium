@@ -53,7 +53,7 @@ func (f *PNGFormatter) format(w io.Writer, style *chroma.Style, tokens []chroma.
 		if f.hasLineNum {
 			f.drawer.Dot.X = left
 			f.drawer.Dot.Y = y
-			f.drawer.Src = image.NewUniform(color.White)
+			f.drawer.Src = image.NewUniform(chooseColorBasedOnContrast())
 			f.drawer.DrawString(fmt.Sprintf(format, i+1))
 		}
 
@@ -64,8 +64,26 @@ func (f *PNGFormatter) format(w io.Writer, style *chroma.Style, tokens []chroma.
 
 		f.drawer.Dot.X = sx
 		for _, t := range tokens {
-			s := style.Get(t.Type)
-			f.drawer.Src = image.NewUniform(color.RGBA{s.Colour.Red(), s.Colour.Green(), s.Colour.Blue(), 255})
+			var tokenColor color.Color
+			chromaTokenColor := style.Get(t.Type).Colour
+			if chromaTokenColor == 0 {
+				// if token has no color, try to use the color of the Text token
+				chromaTokenColor = style.Get(chroma.Text).Colour
+			}
+			if chromaTokenColor != 0 {
+				tokenColor = color.RGBA{
+					chromaTokenColor.Red(),
+					chromaTokenColor.Green(),
+					chromaTokenColor.Blue(),
+					255,
+				}
+			} else {
+				// found no suitable color for token, so use white if background color is close
+				// to black and use black if background color is close to white
+				tokenColor = chooseColorBasedOnContrast()
+			}
+			
+			f.drawer.Src = image.NewUniform(tokenColor)
 
 			for _, c := range t.String() {
 				if c == '\n' {
@@ -87,4 +105,16 @@ func (f *PNGFormatter) format(w io.Writer, style *chroma.Style, tokens []chroma.
 	}
 
 	return png.Encode(w, f.drawer.Dst)
+}
+
+// Choose white or black color based on window background color
+func chooseColorBasedOnContrast() color.Color {
+	black := color.Black
+	white := color.White
+	colorIndex := color.Palette{black, white}.Index(windowBackgroundColor)
+	if colorIndex == 0 {
+		return white
+	} else {
+		return black
+	}
 }
