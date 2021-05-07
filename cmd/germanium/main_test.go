@@ -27,7 +27,7 @@ func TestRun(t *testing.T) {
 					if err := os.Rename(filename+"-gen.png", filename+".png"); err != nil {
 						t.Errorf("FAIL: %v\n", err)
 					}
-					t.Logf("Generate file: %s\n", filename+"-want.png")
+					t.Logf("Generate file: %s\n", filename+".png")
 					return nil
 				}
 

@@ -9,8 +9,8 @@ build:
 	$(GOBUILD) -o $(BINARY_NAME) -v ./cmd/$(BINARY_NAME)
 test: build
 	$(GOTEST) -v ./...
-gentest:
-	$(GOTEST) -gen_golden_files ./...
+gentest: build
+	$(GOTEST) -v ./... -gen_golden_files
 clean:
 	$(GOCLEAN)
 	rm -f $(BINARY_NAME)
