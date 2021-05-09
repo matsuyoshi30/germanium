@@ -22,8 +22,8 @@ var (
 
 	radius = 10
 
-	// image color
-	dracula = color.RGBA{40, 42, 54, 255}
+	// default window background color
+	windowBackgroundColor = color.RGBA{40, 42, 54, 255}
 
 	// button color
 	close   = color.RGBA{255, 95, 86, 255}
@@ -72,7 +72,7 @@ func NewPanel(sx, sy, ex, ey int) *Panel {
 	return &Panel{img: image.NewRGBA(image.Rect(sx, sy, ex, ey))}
 }
 
-func (base *Panel) Draw(backgroundColor string, noWindowAccessBar bool) error {
+func (base *Panel) Draw(backgroundColor string, style string, noWindowAccessBar bool) error {
 	bg, err := ParseHexColor(backgroundColor)
 	if err != nil {
 		return err
@@ -83,6 +83,18 @@ func (base *Panel) Draw(backgroundColor string, noWindowAccessBar bool) error {
 
 	// base image
 	base.fillColor(bg)
+
+	// use the background color of the Chroma style, if it exists
+	chromaStyle := styles.Get(style)
+	chromaBackgroundColor := chromaStyle.Get(chroma.Background).Background
+	if chromaBackgroundColor != 0 {
+		windowBackgroundColor = color.RGBA{
+			R: chromaBackgroundColor.Red(),
+			G: chromaBackgroundColor.Green(),
+			B: chromaBackgroundColor.Blue(),
+			A: 255,
+		}
+	}
 
 	base.drawWindowPanel(width, height)
 
@@ -101,13 +113,13 @@ func (base *Panel) Draw(backgroundColor string, noWindowAccessBar bool) error {
 
 func (p *Panel) drawWindowPanel(w, h int) {
 	window := NewPanel(paddingWidth, paddingHeight, w-paddingWidth, h-paddingHeight)
-	window.fillColor(dracula)
+	window.fillColor(windowBackgroundColor)
 	draw.Draw(p.img, p.img.Bounds(), window.img, image.Point{0, 0}, draw.Over)
 }
 
 func (p *Panel) drawWindowControlPanel(w, h int) {
 	wc := NewPanel(paddingWidth, paddingHeight, w-paddingWidth, paddingHeight+windowHeight)
-	wc.fillColor(dracula)
+	wc.fillColor(windowBackgroundColor)
 
 	wc.drawControlButtons()
 
@@ -135,7 +147,7 @@ func (p *Panel) drawRound(w, h int) {
 		image.Point{w - paddingWidth, h - paddingHeight},
 	}
 	for _, c := range corners {
-		round.drawCircle(c, radius, dracula)
+		round.drawCircle(c, radius, windowBackgroundColor)
 	}
 	draw.Draw(p.img, p.img.Bounds(), round.img, image.Point{0, 0}, draw.Over)
 }
@@ -148,7 +160,7 @@ func (p *Panel) drawAroundBar(w, h int) {
 		NewPanel(paddingWidth, h-paddingHeight, w-paddingWidth, h-paddingHeight+radius),
 	}
 	for _, ab := range aroundbars {
-		ab.fillColor(dracula)
+		ab.fillColor(windowBackgroundColor)
 		draw.Draw(p.img, p.img.Bounds(), ab.img, image.Point{0, 0}, draw.Over)
 	}
 }
@@ -205,7 +217,7 @@ func (p *Panel) drawCircle(center image.Point, radius int, c color.RGBA) {
 }
 
 // Label labels highlighted source code on panel
-func (p *Panel) Label(out io.Writer, filename, src, language string, face font.Face, hasLineNum bool) error {
+func (p *Panel) Label(out io.Writer, filename, src, language string, style string, face font.Face, hasLineNum bool) error {
 	var lexer chroma.Lexer
 	if language != "" {
 		lexer = lexers.Get(language)
@@ -217,10 +229,7 @@ func (p *Panel) Label(out io.Writer, filename, src, language string, face font.F
 	}
 	lexer = chroma.Coalesce(lexer)
 
-	style := styles.Get("dracula")
-	if style == nil {
-		style = styles.Fallback
-	}
+	chromaStyle := styles.Get(style)
 
 	iterator, err := lexer.Tokenise(nil, src)
 	if err != nil {
@@ -241,7 +250,7 @@ func (p *Panel) Label(out io.Writer, filename, src, language string, face font.F
 		formatter = formatters.Fallback
 	}
 
-	if err := p.Formatter.Format(out, style, iterator); err != nil {
+	if err := p.Formatter.Format(out, chromaStyle, iterator); err != nil {
 		return err
 	}
 

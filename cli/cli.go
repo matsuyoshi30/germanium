@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	flags "github.com/jessevdk/go-flags"
+	"github.com/alecthomas/chroma/styles"
 	"github.com/matsuyoshi30/germanium"
 )
 
@@ -44,6 +45,13 @@ func Run() (err error) {
 	var filename string
 	if len(args) > 0 {
 		filename = args[0]
+	}
+
+	if opts.ListStyles {
+		for _, name := range styles.Names() {
+			fmt.Printf("%s ", name)
+		}
+		return nil
 	}
 
 	if opts.ListFonts {
@@ -99,11 +107,16 @@ func run(r io.Reader, filename string) error {
 		return err
 	}
 
+	// set default style to dracula
+	style := `dracula`
+	if opts.Style != `` {
+		style = opts.Style
+	}
 	image := germanium.NewImage(src, face, opts.NoWindowAccessBar)
-	if err := image.Draw(opts.BackgroundColor, opts.NoWindowAccessBar); err != nil {
+	if err := image.Draw(opts.BackgroundColor, style, opts.NoWindowAccessBar); err != nil {
 		return err
 	}
-	if err := image.Label(out, filename, src, opts.Language, face, !opts.NoLineNum); err != nil {
+	if err := image.Label(out, filename, src, opts.Language, style, face, !opts.NoLineNum); err != nil {
 		return err
 	}
 
