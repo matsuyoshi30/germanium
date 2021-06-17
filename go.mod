@@ -3,7 +3,7 @@ module github.com/matsuyoshi30/germanium
 go 1.16
 
 require (
-	github.com/alecthomas/chroma v0.8.2
+	github.com/alecthomas/chroma v0.9.2
 	github.com/flopp/go-findfont v0.0.0-20201114153133-e7393a00c15b
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/jessevdk/go-flags v1.5.0
