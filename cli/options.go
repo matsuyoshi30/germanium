@@ -6,6 +6,7 @@ type Options struct {
 	Font              string `short:"f" long:"font" default:"Hack-Regular" description:"Specify font eg. 'Hack-Bold'"`
 	Language          string `short:"l" long:"language" description:"The language for syntax highlighting"`
 	Style             string `short:"s" long:"style" description:"The style for syntax highlighting"`
+	Clipboard         bool   `short:"c" long:"clip" description:"Copy image to clipboard"`
 	ListStyles        bool   `long:"list-styles" description:"List all available styles for syntax highlighting"`
 	ListFonts         bool   `long:"list-fonts" description:"List all available fonts in your system"`
 	NoLineNum         bool   `long:"no-line-number" description:"Hide the line number"`

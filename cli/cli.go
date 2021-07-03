@@ -1,14 +1,16 @@
 package cli
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 
-	flags "github.com/jessevdk/go-flags"
 	"github.com/alecthomas/chroma/styles"
+	flags "github.com/jessevdk/go-flags"
 	"github.com/matsuyoshi30/germanium"
+	"github.com/skanehira/clipboard-image/v2"
 )
 
 var name = "germanium"
@@ -92,9 +94,15 @@ func run(r io.Reader, filename string) error {
 	if err != nil {
 		return err
 	}
-	out, err := os.Create(filepath.Join(currentDir, opts.Output))
-	if err != nil {
-		return err
+	var out io.ReadWriter
+
+	if opts.Clipboard {
+		out = &bytes.Buffer{}
+	} else {
+		out, err = os.Create(filepath.Join(currentDir, opts.Output))
+		if err != nil {
+			return err
+		}
 	}
 
 	face, err := germanium.LoadFont(opts.Font)
@@ -118,6 +126,12 @@ func run(r io.Reader, filename string) error {
 	}
 	if err := image.Label(out, filename, src, opts.Language, style, face, !opts.NoLineNum); err != nil {
 		return err
+	}
+
+	if opts.Clipboard {
+		if err := clipboard.Write(out); err != nil {
+			return err
+		}
 	}
 
 	return nil

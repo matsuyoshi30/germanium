@@ -21,6 +21,7 @@ FLAGS:
     -f, --font <FONT>         Specify font eg. 'Hack-Bold'
     -l, --language <LANG>     The language for syntax highlighting eg. 'go'
     -s, --style <STYLE>       The style for syntax highlighting eg. 'dracula'
+    -c, --clip                Copy image to clipboard
     --list-styles             List all available styles for syntax highlighting
     --list-fonts              List all available fonts in your system
     --no-line-number          Hide the line number
@@ -60,6 +61,11 @@ Generate image without window control bar
 germanium --no-window-access-bar -o main.png main.go
 ```
 
+Generate image and copy to clipboard
+
+```
+germanium --no-window-access-bar -o main.png main.go -c
+```
 
 ## Install
 
