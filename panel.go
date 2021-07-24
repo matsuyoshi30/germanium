@@ -245,11 +245,6 @@ func (p *Panel) Label(out io.Writer, filename, src, language string, style strin
 	p.Formatter = NewPNGFormatter(fontSize, drawer, sp, hasLineNum)
 	formatters.Register("png", p.Formatter)
 
-	formatter := formatters.Get("png")
-	if formatter == nil {
-		formatter = formatters.Fallback
-	}
-
 	if err := p.Formatter.Format(out, chromaStyle, iterator); err != nil {
 		return err
 	}
