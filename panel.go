@@ -141,10 +141,10 @@ func (p *Panel) drawAround(w, h int) {
 func (p *Panel) drawRound(w, h int) {
 	round := NewPanel(paddingWidth-radius, paddingHeight-radius, w-paddingWidth+radius, h-paddingHeight+radius)
 	corners := []image.Point{
-		image.Point{paddingWidth, paddingHeight},
-		image.Point{w - paddingWidth, paddingHeight},
-		image.Point{paddingWidth, h - paddingHeight},
-		image.Point{w - paddingWidth, h - paddingHeight},
+		{paddingWidth, paddingHeight},
+		{w - paddingWidth, paddingHeight},
+		{paddingWidth, h - paddingHeight},
+		{w - paddingWidth, h - paddingHeight},
 	}
 	for _, c := range corners {
 		round.drawCircle(c, radius, windowBackgroundColor)
