@@ -30,6 +30,8 @@ func ReadString(r io.Reader, face font.Face) (string, error) {
 }
 
 func MaxLine(s string) string {
+	s = strings.ReplaceAll(s, "\t", "    ") // replace tab to whitespace
+
 	var ret string
 	for _, line := range strings.Split(s, "\n") {
 		if utf8.RuneCountInString(ret) < utf8.RuneCountInString(line) {
