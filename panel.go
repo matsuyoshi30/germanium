@@ -54,7 +54,6 @@ type Labeler interface {
 
 func NewImage(src string, face font.Face, noWindowAccessBar bool) *Panel {
 	ml := MaxLine(src)
-	ml = strings.ReplaceAll(ml, "\t", "    ") // replace tab to whitespace
 	ml = ml + " "
 
 	width := CalcWidth(font.MeasureString(face, " ").Ceil() * len(ml))
