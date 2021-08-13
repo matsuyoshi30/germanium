@@ -10,6 +10,7 @@ import (
 	"github.com/alecthomas/chroma/styles"
 	flags "github.com/jessevdk/go-flags"
 	"github.com/matsuyoshi30/germanium"
+	findfont "github.com/matsuyoshi30/go-findfont"
 	"github.com/skanehira/clipboard-image/v2"
 )
 
@@ -57,7 +58,13 @@ func Run() (err error) {
 	}
 
 	if opts.ListFonts {
-		germanium.ListFonts()
+		for _, path := range findfont.List() {
+			base := filepath.Base(path)
+			ext := filepath.Ext(path)
+			if ext == ".ttf" {
+				fmt.Println(base[0 : len(base)-len(ext)])
+			}
+		}
 		return nil
 	}
 
@@ -105,7 +112,20 @@ func run(r io.Reader, filename string) error {
 		}
 	}
 
-	face, err := germanium.LoadFont(opts.Font)
+	var fontData []byte
+	if opts.Font != germanium.DefaultFont {
+		fontPath, err := findfont.Find(opts.Font + ".ttf")
+		if err != nil {
+			return err
+		}
+
+		fontData, err = os.ReadFile(fontPath)
+		if err != nil {
+			return err
+		}
+	}
+
+	face, err := germanium.LoadFont(fontData)
 	if err != nil {
 		return err
 	}
