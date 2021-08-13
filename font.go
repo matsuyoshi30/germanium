@@ -2,14 +2,12 @@ package germanium
 
 import (
 	_ "embed"
-	"fmt"
-	"os"
-	"path/filepath"
 
-	findfont "github.com/flopp/go-findfont"
 	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
 )
+
+const DefaultFont = "Hack-Regular"
 
 var (
 	fontSize = 24.0
@@ -18,18 +16,10 @@ var (
 	font_hack []byte
 )
 
-func LoadFont(font string) (font.Face, error) {
+func LoadFont(data []byte) (font.Face, error) {
 	fontData := font_hack
-	if font != "Hack-Regular" {
-		fontPath, err := findfont.Find(font + ".ttf")
-		if err != nil {
-			return nil, err
-		}
-
-		fontData, err = os.ReadFile(fontPath)
-		if err != nil {
-			return nil, err
-		}
+	if len(data) > 0 {
+		fontData = data
 	}
 
 	ft, err := truetype.Parse(fontData)
@@ -38,14 +28,4 @@ func LoadFont(font string) (font.Face, error) {
 	}
 
 	return truetype.NewFace(ft, &truetype.Options{Size: fontSize}), nil
-}
-
-func ListFonts() {
-	for _, path := range findfont.List() {
-		base := filepath.Base(path)
-		ext := filepath.Ext(path)
-		if ext == ".ttf" {
-			fmt.Println(base[0 : len(base)-len(ext)])
-		}
-	}
 }
