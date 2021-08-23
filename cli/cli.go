@@ -97,16 +97,24 @@ func Run() (err error) {
 }
 
 func run(r io.Reader, filename string) error {
-	currentDir, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-	var out io.ReadWriter
+	var (
+		out io.ReadWriter
+		err error
+	)
 
 	if opts.Clipboard {
 		out = &bytes.Buffer{}
 	} else {
-		out, err = os.Create(filepath.Join(currentDir, opts.Output))
+		if filepath.IsAbs(opts.Output) {
+			out, err = os.Create(opts.Output)
+		} else {
+			currentDir, err := os.Getwd()
+			if err != nil {
+				return err
+			}
+			out, err = os.Create(filepath.Join(currentDir, opts.Output))
+		}
+
 		if err != nil {
 			return err
 		}
