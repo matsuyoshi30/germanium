@@ -90,6 +90,10 @@ cd cmd/germanium && go install
 
 - go1.16
 
+## Related Projects
+
+- [denops-germanium.vim](https://github.com/skanehira/denops-germanium.vim) is a Vim/Neovim plugin for germanium by [skanehira](https://github.com/skanehira).
+- [germanium.el](https://github.com/matsuyoshi30/germanium-el) is a Emacs package for germanium.
 
 ## LICENSE
 
