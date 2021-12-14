@@ -72,7 +72,7 @@ func Run() (err error) {
 	switch filename {
 	case "", "-":
 		if opts.Language == "" {
-			err = fmt.Errorf("If you want to use stdin, specify language")
+			err = fmt.Errorf("specify language in order to use stdin")
 			return
 		}
 		r = os.Stdin
