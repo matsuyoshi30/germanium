@@ -107,16 +107,19 @@ func run(r io.Reader, filename string) error {
 	} else {
 		if filepath.IsAbs(opts.Output) {
 			out, err = os.Create(opts.Output)
+			if err != nil {
+				return err
+			}
 		} else {
 			currentDir, err := os.Getwd()
 			if err != nil {
 				return err
 			}
-			out, err = os.Create(filepath.Join(currentDir, opts.Output))
-		}
 
-		if err != nil {
-			return err
+			out, err = os.Create(filepath.Join(currentDir, opts.Output))
+			if err != nil {
+				return err
+			}
 		}
 	}
 
