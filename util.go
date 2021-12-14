@@ -29,6 +29,7 @@ func ReadString(r io.Reader, face font.Face) (string, error) {
 	return b.String(), nil
 }
 
+// MaxLine finds the maximum length line of the source code
 func MaxLine(s string) string {
 	s = strings.ReplaceAll(s, "\t", "    ") // replace tab to whitespace
 
@@ -42,6 +43,7 @@ func MaxLine(s string) string {
 	return ret
 }
 
+// ParseHexColor parses string into RGBA
 func ParseHexColor(s string) (color.RGBA, error) {
 	c := color.RGBA{A: 255}
 

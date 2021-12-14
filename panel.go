@@ -31,10 +31,14 @@ var (
 	maximum = color.RGBA{39, 201, 63, 255}
 )
 
+// CalcWidth calculates the image width from the length of the longest line of
+// the source code, padding and line number
 func CalcWidth(maxLineLen int) int {
 	return maxLineLen + (paddingWidth * 2) + lineWidth
 }
 
+// CalcHeight calculates the image height from the number of lines of the
+// source code, padding and access bar
 func CalcHeight(lineCount int, noWindowAccessBar bool) int {
 	h := (lineCount * int((fontSize * 1.25))) + int(fontSize) + (paddingHeight * 2)
 	if !noWindowAccessBar {
@@ -44,14 +48,17 @@ func CalcHeight(lineCount int, noWindowAccessBar bool) int {
 	return h
 }
 
+// Drawer implements Draw()
 type Drawer interface {
 	Draw() error
 }
 
+// Labeler implements Label()
 type Labeler interface {
 	Label(io.Writer, string, string, string, bool) error
 }
 
+// NewImage generates new base panel
 func NewImage(src string, face font.Face, noWindowAccessBar bool) *Panel {
 	ml := MaxLine(src)
 	ml = ml + " "
@@ -62,15 +69,18 @@ func NewImage(src string, face font.Face, noWindowAccessBar bool) *Panel {
 	return NewPanel(0, 0, width, height)
 }
 
+// Panel holds an image and formatter
 type Panel struct {
 	img       *image.RGBA
 	Formatter Formatter
 }
 
+// NewPanel generates new panel
 func NewPanel(sx, sy, ex, ey int) *Panel {
 	return &Panel{img: image.NewRGBA(image.Rect(sx, sy, ex, ey))}
 }
 
+// Draw draws the editor image on the base panel
 func (base *Panel) Draw(backgroundColor string, style string, noWindowAccessBar bool) error {
 	bg, err := ParseHexColor(backgroundColor)
 	if err != nil {
