@@ -155,10 +155,13 @@ func run(r io.Reader, filename string) error {
 		return err
 	}
 
-	if err := image.Draw(opts.BackgroundColor, style, opts.NoWindowAccessBar); err != nil {
+	err = image.Draw(opts.BackgroundColor, style, opts.NoWindowAccessBar)
+	if err != nil {
 		return err
 	}
-	if err := image.Label(out, &buf, filename, opts.Language, style, face, !opts.NoLineNum); err != nil {
+
+	err = image.Label(out, &buf, filename, opts.Language, style, face, !opts.NoLineNum)
+	if err != nil {
 		return err
 	}
 
