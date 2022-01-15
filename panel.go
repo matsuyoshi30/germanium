@@ -41,7 +41,7 @@ func CalcWidth(maxLineLen int) int {
 
 // CalcHeight calculates the image height from the number of lines of the
 // source code, padding and access bar
-func CalcHeight(lineCount int, noWindowAccessBar bool) int {
+func CalcHeight(lineCount int, fontSize float64, noWindowAccessBar bool) int {
 	h := (lineCount * int((fontSize * 1.25))) + int(fontSize) + (paddingHeight * 2)
 	if !noWindowAccessBar {
 		h += windowHeight
@@ -61,7 +61,7 @@ type Labeler interface {
 }
 
 // NewImage generates new base panel
-func NewImage(src io.Reader, face font.Face, noWindowAccessBar bool) (*Panel, error) {
+func NewImage(src io.Reader, face font.Face, fontSize float64, noWindowAccessBar bool) (*Panel, error) {
 	scanner := bufio.NewScanner(src)
 
 	var ret, ln int
@@ -78,7 +78,7 @@ func NewImage(src io.Reader, face font.Face, noWindowAccessBar bool) (*Panel, er
 	}
 
 	width := CalcWidth(font.MeasureString(face, " ").Ceil() * (ret + 1))
-	height := CalcHeight(ln, noWindowAccessBar)
+	height := CalcHeight(ln, fontSize, noWindowAccessBar)
 
 	return NewPanel(0, 0, width, height), nil
 }
@@ -240,7 +240,7 @@ func (p *Panel) drawCircle(center image.Point, radius int, c color.RGBA) {
 }
 
 // Label labels highlighted source code on panel
-func (p *Panel) Label(out io.Writer, src io.Reader, filename, language string, style string, face font.Face, hasLineNum bool) error {
+func (p *Panel) Label(out io.Writer, src io.Reader, filename, language string, style string, face font.Face, fontSize float64, hasLineNum bool) error {
 	var lexer chroma.Lexer
 	if language != "" {
 		lexer = lexers.Get(language)

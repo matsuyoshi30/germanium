@@ -2,16 +2,19 @@ package cli
 
 import (
 	"bytes"
+	_ "embed" // embed font data
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 
 	"github.com/alecthomas/chroma/styles"
+	"github.com/golang/freetype/truetype"
 	flags "github.com/jessevdk/go-flags"
 	"github.com/matsuyoshi30/germanium"
 	findfont "github.com/matsuyoshi30/go-findfont"
 	"github.com/skanehira/clipboard-image/v2"
+	"golang.org/x/image/font"
 )
 
 var name = "germanium"
@@ -124,7 +127,7 @@ func run(r io.Reader, filename string) error {
 	}
 
 	var fontData []byte
-	if opts.Font != germanium.DefaultFont {
+	if opts.Font != DefaultFont {
 		fontPath, err := findfont.Find(opts.Font + ".ttf")
 		if err != nil {
 			return err
@@ -136,7 +139,7 @@ func run(r io.Reader, filename string) error {
 		}
 	}
 
-	face, err := germanium.LoadFont(fontData)
+	face, err := loadFont(fontData)
 	if err != nil {
 		return err
 	}
@@ -150,7 +153,7 @@ func run(r io.Reader, filename string) error {
 	var buf bytes.Buffer
 	src := io.TeeReader(r, &buf)
 
-	image, err := germanium.NewImage(src, face, opts.NoWindowAccessBar)
+	image, err := germanium.NewImage(src, face, fontSize, opts.NoWindowAccessBar)
 	if err != nil {
 		return err
 	}
@@ -160,7 +163,7 @@ func run(r io.Reader, filename string) error {
 		return err
 	}
 
-	err = image.Label(out, &buf, filename, opts.Language, style, face, !opts.NoLineNum)
+	err = image.Label(out, &buf, filename, opts.Language, style, face, fontSize, !opts.NoLineNum)
 	if err != nil {
 		return err
 	}
@@ -172,4 +175,29 @@ func run(r io.Reader, filename string) error {
 	}
 
 	return nil
+}
+
+// DefaultFont is default font name
+const DefaultFont = "Hack-Regular"
+
+var (
+	fontSize = 24.0
+
+	//go:embed font/Hack-Regular.ttf
+	fontHack []byte
+)
+
+// LoadFont loads font data and returns font.Face
+func loadFont(data []byte) (font.Face, error) {
+	fontData := fontHack
+	if len(data) > 0 {
+		fontData = data
+	}
+
+	ft, err := truetype.Parse(fontData)
+	if err != nil {
+		return nil, err
+	}
+
+	return truetype.NewFace(ft, &truetype.Options{Size: fontSize}), nil
 }
