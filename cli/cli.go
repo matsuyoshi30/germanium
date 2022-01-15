@@ -163,7 +163,7 @@ func run(r io.Reader, filename string) error {
 		return err
 	}
 
-	err = image.Label(out, &buf, filename, opts.Language, style, face, fontSize)
+	err = image.Label(out, &buf, filename, opts.Language)
 	if err != nil {
 		return err
 	}

@@ -87,6 +87,8 @@ func NewImage(src io.Reader, face font.Face, fontSize float64, style, background
 	p.bgColor = backgroundColor
 	p.noWindowAccessBar = noWindowAccessBar
 	p.noLineNum = noLineNum
+	p.fontFace = face
+	p.fontSize = fontSize
 
 	return p, nil
 }
@@ -99,6 +101,8 @@ type Panel struct {
 	noWindowAccessBar bool
 	noLineNum         bool
 	Formatter         Formatter
+	fontFace          font.Face
+	fontSize          float64
 }
 
 // NewPanel generates new panel
@@ -252,7 +256,7 @@ func (p *Panel) drawCircle(center image.Point, radius int, c color.RGBA) {
 }
 
 // Label labels highlighted source code on panel
-func (p *Panel) Label(out io.Writer, src io.Reader, filename, language, style string, face font.Face, fontSize float64) error {
+func (p *Panel) Label(out io.Writer, src io.Reader, filename, language string) error {
 	var lexer chroma.Lexer
 	if language != "" {
 		lexer = lexers.Get(language)
@@ -264,7 +268,7 @@ func (p *Panel) Label(out io.Writer, src io.Reader, filename, language, style st
 	}
 	lexer = chroma.Coalesce(lexer)
 
-	chromaStyle := styles.Get(style)
+	chromaStyle := styles.Get(p.style)
 
 	b, err := io.ReadAll(src)
 	if err != nil {
@@ -279,10 +283,10 @@ func (p *Panel) Label(out io.Writer, src io.Reader, filename, language, style st
 	drawer := &font.Drawer{
 		Dst:  p.img,
 		Src:  image.NewUniform(color.White),
-		Face: face,
+		Face: p.fontFace,
 	}
 	sp := image.Point{X: paddingWidth, Y: paddingHeight + windowHeight}
-	p.Formatter = NewPNGFormatter(fontSize, drawer, sp, !p.noLineNum)
+	p.Formatter = NewPNGFormatter(p.fontSize, drawer, sp, !p.noLineNum)
 	formatters.Register("png", p.Formatter)
 
 	if err := p.Formatter.Format(out, chromaStyle, iterator); err != nil {
