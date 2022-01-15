@@ -7,6 +7,7 @@ import (
 	"golang.org/x/image/font"
 )
 
+// DefaultFont is default font name
 const DefaultFont = "Hack-Regular"
 
 var (
@@ -16,6 +17,7 @@ var (
 	font_hack []byte
 )
 
+// LoadFont loads font data and returns font.Face
 func LoadFont(data []byte) (font.Face, error) {
 	fontData := font_hack
 	if len(data) > 0 {
