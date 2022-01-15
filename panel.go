@@ -55,13 +55,15 @@ type Drawer interface {
 	Draw() error
 }
 
+var _ Drawer = (*Panel)(nil)
+
 // Labeler implements Label()
 type Labeler interface {
 	Label(io.Writer, io.Reader, string, string, bool) error
 }
 
 // NewImage generates new base panel
-func NewImage(src io.Reader, face font.Face, fontSize float64, noWindowAccessBar bool) (*Panel, error) {
+func NewImage(src io.Reader, face font.Face, fontSize float64, style, backgroundColor string, noWindowAccessBar bool) (*Panel, error) {
 	scanner := bufio.NewScanner(src)
 
 	var ret, ln int
@@ -80,13 +82,21 @@ func NewImage(src io.Reader, face font.Face, fontSize float64, noWindowAccessBar
 	width := CalcWidth(font.MeasureString(face, " ").Ceil() * (ret + 1))
 	height := CalcHeight(ln, fontSize, noWindowAccessBar)
 
-	return NewPanel(0, 0, width, height), nil
+	p := NewPanel(0, 0, width, height)
+	p.style = style
+	p.bgColor = backgroundColor
+	p.noWindowAccessBar = noWindowAccessBar
+
+	return p, nil
 }
 
 // Panel holds an image and formatter
 type Panel struct {
-	img       *image.RGBA
-	Formatter Formatter
+	img               *image.RGBA
+	style             string
+	bgColor           string
+	noWindowAccessBar bool
+	Formatter         Formatter
 }
 
 // NewPanel generates new panel
@@ -95,8 +105,8 @@ func NewPanel(sx, sy, ex, ey int) *Panel {
 }
 
 // Draw draws the editor image on the base panel
-func (p *Panel) Draw(backgroundColor string, style string, noWindowAccessBar bool) error {
-	bg, err := ParseHexColor(backgroundColor)
+func (p *Panel) Draw() error {
+	bg, err := ParseHexColor(p.bgColor)
 	if err != nil {
 		return err
 	}
@@ -108,7 +118,7 @@ func (p *Panel) Draw(backgroundColor string, style string, noWindowAccessBar boo
 	p.fillColor(bg)
 
 	// use the background color of the Chroma style, if it exists
-	chromaStyle := styles.Get(style)
+	chromaStyle := styles.Get(p.style)
 	chromaBackgroundColor := chromaStyle.Get(chroma.Background).Background
 	if chromaBackgroundColor != 0 {
 		windowBackgroundColor = color.RGBA{
@@ -122,7 +132,7 @@ func (p *Panel) Draw(backgroundColor string, style string, noWindowAccessBar boo
 	p.drawWindowPanel(width, height)
 
 	// window control bar
-	if noWindowAccessBar {
+	if p.noWindowAccessBar {
 		windowHeight = 10
 	} else {
 		p.drawWindowControlPanel(width, height)
