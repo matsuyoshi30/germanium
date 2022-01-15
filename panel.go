@@ -252,7 +252,7 @@ func (p *Panel) drawCircle(center image.Point, radius int, c color.RGBA) {
 }
 
 // Label labels highlighted source code on panel
-func (p *Panel) Label(out io.Writer, src io.Reader, filename, language string, style string, face font.Face, fontSize float64) error {
+func (p *Panel) Label(out io.Writer, src io.Reader, filename, language, style string, face font.Face, fontSize float64) error {
 	var lexer chroma.Lexer
 	if language != "" {
 		lexer = lexers.Get(language)
