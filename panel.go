@@ -59,8 +59,10 @@ var _ Drawer = (*Panel)(nil)
 
 // Labeler implements Label()
 type Labeler interface {
-	Label(io.Writer, io.Reader, string, string, bool) error
+	Label(io.Writer, io.Reader, string, string) error
 }
+
+var _ Labeler = (*Panel)(nil)
 
 // NewImage generates new base panel
 func NewImage(src io.Reader, face font.Face, fontSize float64, style, backgroundColor string, noWindowAccessBar, noLineNum bool) (*Panel, error) {
