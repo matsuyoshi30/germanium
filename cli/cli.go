@@ -141,21 +141,24 @@ func run(r io.Reader, filename string) error {
 		return err
 	}
 
-	src, err := germanium.ReadString(r, face)
-	if err != nil {
-		return err
-	}
-
 	// set default style to dracula
 	style := `dracula`
 	if opts.Style != `` {
 		style = opts.Style
 	}
-	image := germanium.NewImage(src, face, opts.NoWindowAccessBar)
+
+	var buf bytes.Buffer
+	src := io.TeeReader(r, &buf)
+
+	image, err := germanium.NewImage(src, face, opts.NoWindowAccessBar)
+	if err != nil {
+		return err
+	}
+
 	if err := image.Draw(opts.BackgroundColor, style, opts.NoWindowAccessBar); err != nil {
 		return err
 	}
-	if err := image.Label(out, filename, src, opts.Language, style, face, !opts.NoLineNum); err != nil {
+	if err := image.Label(out, &buf, filename, opts.Language, style, face, !opts.NoLineNum); err != nil {
 		return err
 	}
 

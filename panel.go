@@ -1,11 +1,13 @@
 package germanium
 
 import (
+	"bufio"
 	"image"
 	"image/color"
 	"image/draw"
 	"io"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/alecthomas/chroma"
 	"github.com/alecthomas/chroma/formatters"
@@ -55,18 +57,30 @@ type Drawer interface {
 
 // Labeler implements Label()
 type Labeler interface {
-	Label(io.Writer, string, string, string, bool) error
+	Label(io.Writer, io.Reader, string, string, bool) error
 }
 
 // NewImage generates new base panel
-func NewImage(src string, face font.Face, noWindowAccessBar bool) *Panel {
-	ml := MaxLine(src)
-	ml = ml + " "
+func NewImage(src io.Reader, face font.Face, noWindowAccessBar bool) (*Panel, error) {
+	scanner := bufio.NewScanner(src)
 
-	width := CalcWidth(font.MeasureString(face, " ").Ceil() * len(ml))
-	height := CalcHeight(strings.Count(src, "\n"), noWindowAccessBar)
+	var ret, ln int
+	for scanner.Scan() {
+		str := strings.ReplaceAll(scanner.Text(), "\t", "    ") // replace tab to whitespace
 
-	return NewPanel(0, 0, width, height)
+		if ret < utf8.RuneCountInString(str) {
+			ret = utf8.RuneCountInString(str)
+		}
+		ln++
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	width := CalcWidth(font.MeasureString(face, " ").Ceil() * (ret + 1))
+	height := CalcHeight(ln, noWindowAccessBar)
+
+	return NewPanel(0, 0, width, height), nil
 }
 
 // Panel holds an image and formatter
@@ -226,7 +240,7 @@ func (p *Panel) drawCircle(center image.Point, radius int, c color.RGBA) {
 }
 
 // Label labels highlighted source code on panel
-func (p *Panel) Label(out io.Writer, filename, src, language string, style string, face font.Face, hasLineNum bool) error {
+func (p *Panel) Label(out io.Writer, src io.Reader, filename, language string, style string, face font.Face, hasLineNum bool) error {
 	var lexer chroma.Lexer
 	if language != "" {
 		lexer = lexers.Get(language)
@@ -240,7 +254,12 @@ func (p *Panel) Label(out io.Writer, filename, src, language string, style strin
 
 	chromaStyle := styles.Get(style)
 
-	iterator, err := lexer.Tokenise(nil, src)
+	b, err := io.ReadAll(src)
+	if err != nil {
+		return err
+	}
+
+	iterator, err := lexer.Tokenise(nil, string(b))
 	if err != nil {
 		return err
 	}
