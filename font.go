@@ -14,12 +14,12 @@ var (
 	fontSize = 24.0
 
 	//go:embed assets/fonts/Hack-Regular.ttf
-	font_hack []byte
+	fontHack []byte
 )
 
 // LoadFont loads font data and returns font.Face
 func LoadFont(data []byte) (font.Face, error) {
-	fontData := font_hack
+	fontData := fontHack
 	if len(data) > 0 {
 		fontData = data
 	}
