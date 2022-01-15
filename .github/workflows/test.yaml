@@ -9,7 +9,6 @@ on:
   pull_request:
     paths-ignore:
     - 'README.md'
-    - '.github/**'
 jobs:
   test:
     strategy:
