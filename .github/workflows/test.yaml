@@ -27,5 +27,7 @@ jobs:
       run: go build
     - uses: dominikh/staticcheck-action@v1.0.0
       name: staticcheck
+      with:
+        install-go: false
     - name: Test
       run: make test
