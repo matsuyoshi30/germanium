@@ -26,5 +26,7 @@ jobs:
       uses: actions/checkout@v2
     - name: Build
       run: go build
+    - uses: dominikh/staticcheck-action@v1.1.0
+      name: staticcheck
     - name: Test
       run: make test
