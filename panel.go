@@ -63,7 +63,7 @@ type Labeler interface {
 }
 
 // NewImage generates new base panel
-func NewImage(src io.Reader, face font.Face, fontSize float64, style, backgroundColor string, noWindowAccessBar bool) (*Panel, error) {
+func NewImage(src io.Reader, face font.Face, fontSize float64, style, backgroundColor string, noWindowAccessBar, noLineNum bool) (*Panel, error) {
 	scanner := bufio.NewScanner(src)
 
 	var ret, ln int
@@ -86,6 +86,7 @@ func NewImage(src io.Reader, face font.Face, fontSize float64, style, background
 	p.style = style
 	p.bgColor = backgroundColor
 	p.noWindowAccessBar = noWindowAccessBar
+	p.noLineNum = noLineNum
 
 	return p, nil
 }
@@ -96,6 +97,7 @@ type Panel struct {
 	style             string
 	bgColor           string
 	noWindowAccessBar bool
+	noLineNum         bool
 	Formatter         Formatter
 }
 
@@ -250,7 +252,7 @@ func (p *Panel) drawCircle(center image.Point, radius int, c color.RGBA) {
 }
 
 // Label labels highlighted source code on panel
-func (p *Panel) Label(out io.Writer, src io.Reader, filename, language string, style string, face font.Face, fontSize float64, hasLineNum bool) error {
+func (p *Panel) Label(out io.Writer, src io.Reader, filename, language string, style string, face font.Face, fontSize float64) error {
 	var lexer chroma.Lexer
 	if language != "" {
 		lexer = lexers.Get(language)
@@ -280,7 +282,7 @@ func (p *Panel) Label(out io.Writer, src io.Reader, filename, language string, s
 		Face: face,
 	}
 	sp := image.Point{X: paddingWidth, Y: paddingHeight + windowHeight}
-	p.Formatter = NewPNGFormatter(fontSize, drawer, sp, hasLineNum)
+	p.Formatter = NewPNGFormatter(fontSize, drawer, sp, !p.noLineNum)
 	formatters.Register("png", p.Formatter)
 
 	if err := p.Formatter.Format(out, chromaStyle, iterator); err != nil {
