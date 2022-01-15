@@ -95,17 +95,17 @@ func NewPanel(sx, sy, ex, ey int) *Panel {
 }
 
 // Draw draws the editor image on the base panel
-func (base *Panel) Draw(backgroundColor string, style string, noWindowAccessBar bool) error {
+func (p *Panel) Draw(backgroundColor string, style string, noWindowAccessBar bool) error {
 	bg, err := ParseHexColor(backgroundColor)
 	if err != nil {
 		return err
 	}
 
-	width := base.img.Rect.Dx()
-	height := base.img.Rect.Dy()
+	width := p.img.Rect.Dx()
+	height := p.img.Rect.Dy()
 
 	// base image
-	base.fillColor(bg)
+	p.fillColor(bg)
 
 	// use the background color of the Chroma style, if it exists
 	chromaStyle := styles.Get(style)
@@ -119,17 +119,17 @@ func (base *Panel) Draw(backgroundColor string, style string, noWindowAccessBar 
 		}
 	}
 
-	base.drawWindowPanel(width, height)
+	p.drawWindowPanel(width, height)
 
 	// window control bar
 	if noWindowAccessBar {
 		windowHeight = 10
 	} else {
-		base.drawWindowControlPanel(width, height)
+		p.drawWindowControlPanel(width, height)
 	}
 
 	// round corner
-	base.drawAround(width, height)
+	p.drawAround(width, height)
 
 	return nil
 }
