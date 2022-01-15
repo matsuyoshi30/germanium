@@ -118,7 +118,6 @@ func chooseColorBasedOnContrast() color.Color {
 	colorIndex := color.Palette{black, white}.Index(windowBackgroundColor)
 	if colorIndex == 0 {
 		return white
-	} else {
-		return black
 	}
+	return black
 }
