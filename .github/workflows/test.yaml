@@ -9,7 +9,6 @@ on:
   pull_request:
     paths-ignore:
     - 'README.md'
-    - '.github/**'
 jobs:
   test:
     strategy:
@@ -26,5 +25,9 @@ jobs:
       uses: actions/checkout@v2
     - name: Build
       run: go build
+    - uses: dominikh/staticcheck-action@v1.0.0
+      name: staticcheck
+      with:
+        install-go: false
     - name: Test
       run: make test
