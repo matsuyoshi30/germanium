@@ -22,8 +22,10 @@ var name = "germanium"
 var (
 	// these are set in build step
 	version = "unversioned"
-	commit  = "?"
-	date    = "?"
+	//lint:ignore U1000 embedded by goreleaser
+	commit = "?"
+	//lint:ignore U1000 embedded by goreleaser
+	date = "?"
 )
 
 func Run() (err error) {
