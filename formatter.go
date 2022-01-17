@@ -13,10 +13,12 @@ import (
 	"golang.org/x/image/math/fixed"
 )
 
+// Formatter implements Format()
 type Formatter interface {
 	Format(w io.Writer, style *chroma.Style, iterator chroma.Iterator) error
 }
 
+// PNGFormatter is a formatter for PNG
 type PNGFormatter struct {
 	fontSize   float64
 	drawer     *font.Drawer
@@ -24,6 +26,7 @@ type PNGFormatter struct {
 	hasLineNum bool
 }
 
+// NewPNGFormatter generates a new PNG formatter
 func NewPNGFormatter(fs float64, d *font.Drawer, sp image.Point, l bool) *PNGFormatter {
 	return &PNGFormatter{
 		fontSize:   fs,
@@ -33,6 +36,7 @@ func NewPNGFormatter(fs float64, d *font.Drawer, sp image.Point, l bool) *PNGFor
 	}
 }
 
+// Format formats the source code on the image
 func (f *PNGFormatter) Format(w io.Writer, style *chroma.Style, iterator chroma.Iterator) error {
 	return f.format(w, style, iterator.Tokens())
 }
@@ -82,7 +86,7 @@ func (f *PNGFormatter) format(w io.Writer, style *chroma.Style, tokens []chroma.
 				// to black and use black if background color is close to white
 				tokenColor = chooseColorBasedOnContrast()
 			}
-			
+
 			f.drawer.Src = image.NewUniform(tokenColor)
 
 			for _, c := range t.String() {
@@ -114,7 +118,6 @@ func chooseColorBasedOnContrast() color.Color {
 	colorIndex := color.Palette{black, white}.Index(windowBackgroundColor)
 	if colorIndex == 0 {
 		return white
-	} else {
-		return black
 	}
+	return black
 }

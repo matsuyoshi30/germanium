@@ -1,11 +1,13 @@
 package germanium
 
 import (
+	"bufio"
 	"image"
 	"image/color"
 	"image/draw"
 	"io"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/alecthomas/chroma"
 	"github.com/alecthomas/chroma/formatters"
@@ -31,11 +33,15 @@ var (
 	maximum = color.RGBA{39, 201, 63, 255}
 )
 
+// CalcWidth calculates the image width from the length of the longest line of
+// the source code, padding and line number
 func CalcWidth(maxLineLen int) int {
 	return maxLineLen + (paddingWidth * 2) + lineWidth
 }
 
-func CalcHeight(lineCount int, noWindowAccessBar bool) int {
+// CalcHeight calculates the image height from the number of lines of the
+// source code, padding and access bar
+func CalcHeight(lineCount int, fontSize float64, noWindowAccessBar bool) int {
 	h := (lineCount * int((fontSize * 1.25))) + int(fontSize) + (paddingHeight * 2)
 	if !noWindowAccessBar {
 		h += windowHeight
@@ -44,47 +50,83 @@ func CalcHeight(lineCount int, noWindowAccessBar bool) int {
 	return h
 }
 
+// Drawer implements Draw()
 type Drawer interface {
 	Draw() error
 }
 
+var _ Drawer = (*Panel)(nil)
+
+// Labeler implements Label()
 type Labeler interface {
-	Label(io.Writer, string, string, string, bool) error
+	Label(io.Writer, io.Reader, string, string) error
 }
 
-func NewImage(src string, face font.Face, noWindowAccessBar bool) *Panel {
-	ml := MaxLine(src)
-	ml = ml + " "
+var _ Labeler = (*Panel)(nil)
 
-	width := CalcWidth(font.MeasureString(face, " ").Ceil() * len(ml))
-	height := CalcHeight(strings.Count(src, "\n"), noWindowAccessBar)
+// NewImage generates new base panel
+func NewImage(src io.Reader, face font.Face, fontSize float64, style, backgroundColor string, noWindowAccessBar, noLineNum bool) (*Panel, error) {
+	scanner := bufio.NewScanner(src)
 
-	return NewPanel(0, 0, width, height)
+	var ret, ln int
+	for scanner.Scan() {
+		str := strings.ReplaceAll(scanner.Text(), "\t", "    ") // replace tab to whitespace
+
+		if ret < utf8.RuneCountInString(str) {
+			ret = utf8.RuneCountInString(str)
+		}
+		ln++
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	width := CalcWidth(font.MeasureString(face, " ").Ceil() * (ret + 1))
+	height := CalcHeight(ln, fontSize, noWindowAccessBar)
+
+	p := NewPanel(0, 0, width, height)
+	p.style = style
+	p.bgColor = backgroundColor
+	p.noWindowAccessBar = noWindowAccessBar
+	p.noLineNum = noLineNum
+	p.fontFace = face
+	p.fontSize = fontSize
+
+	return p, nil
 }
 
+// Panel holds an image and formatter
 type Panel struct {
-	img       *image.RGBA
-	Formatter Formatter
+	img               *image.RGBA
+	style             string
+	bgColor           string
+	noWindowAccessBar bool
+	noLineNum         bool
+	Formatter         Formatter
+	fontFace          font.Face
+	fontSize          float64
 }
 
+// NewPanel generates new panel
 func NewPanel(sx, sy, ex, ey int) *Panel {
 	return &Panel{img: image.NewRGBA(image.Rect(sx, sy, ex, ey))}
 }
 
-func (base *Panel) Draw(backgroundColor string, style string, noWindowAccessBar bool) error {
-	bg, err := ParseHexColor(backgroundColor)
+// Draw draws the editor image on the base panel
+func (p *Panel) Draw() error {
+	bg, err := ParseHexColor(p.bgColor)
 	if err != nil {
 		return err
 	}
 
-	width := base.img.Rect.Dx()
-	height := base.img.Rect.Dy()
+	width := p.img.Rect.Dx()
+	height := p.img.Rect.Dy()
 
 	// base image
-	base.fillColor(bg)
+	p.fillColor(bg)
 
 	// use the background color of the Chroma style, if it exists
-	chromaStyle := styles.Get(style)
+	chromaStyle := styles.Get(p.style)
 	chromaBackgroundColor := chromaStyle.Get(chroma.Background).Background
 	if chromaBackgroundColor != 0 {
 		windowBackgroundColor = color.RGBA{
@@ -95,17 +137,17 @@ func (base *Panel) Draw(backgroundColor string, style string, noWindowAccessBar 
 		}
 	}
 
-	base.drawWindowPanel(width, height)
+	p.drawWindowPanel(width, height)
 
 	// window control bar
-	if noWindowAccessBar {
+	if p.noWindowAccessBar {
 		windowHeight = 10
 	} else {
-		base.drawWindowControlPanel(width, height)
+		p.drawWindowControlPanel(width, height)
 	}
 
 	// round corner
-	base.drawAround(width, height)
+	p.drawAround(width, height)
 
 	return nil
 }
@@ -216,7 +258,7 @@ func (p *Panel) drawCircle(center image.Point, radius int, c color.RGBA) {
 }
 
 // Label labels highlighted source code on panel
-func (p *Panel) Label(out io.Writer, filename, src, language string, style string, face font.Face, hasLineNum bool) error {
+func (p *Panel) Label(out io.Writer, src io.Reader, filename, language string) error {
 	var lexer chroma.Lexer
 	if language != "" {
 		lexer = lexers.Get(language)
@@ -228,9 +270,14 @@ func (p *Panel) Label(out io.Writer, filename, src, language string, style strin
 	}
 	lexer = chroma.Coalesce(lexer)
 
-	chromaStyle := styles.Get(style)
+	chromaStyle := styles.Get(p.style)
 
-	iterator, err := lexer.Tokenise(nil, src)
+	b, err := io.ReadAll(src)
+	if err != nil {
+		return err
+	}
+
+	iterator, err := lexer.Tokenise(nil, string(b))
 	if err != nil {
 		return err
 	}
@@ -238,10 +285,10 @@ func (p *Panel) Label(out io.Writer, filename, src, language string, style strin
 	drawer := &font.Drawer{
 		Dst:  p.img,
 		Src:  image.NewUniform(color.White),
-		Face: face,
+		Face: p.fontFace,
 	}
 	sp := image.Point{X: paddingWidth, Y: paddingHeight + windowHeight}
-	p.Formatter = NewPNGFormatter(fontSize, drawer, sp, hasLineNum)
+	p.Formatter = NewPNGFormatter(p.fontSize, drawer, sp, !p.noLineNum)
 	formatters.Register("png", p.Formatter)
 
 	if err := p.Formatter.Format(out, chromaStyle, iterator); err != nil {

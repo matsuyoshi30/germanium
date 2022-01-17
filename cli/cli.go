@@ -2,16 +2,19 @@ package cli
 
 import (
 	"bytes"
+	_ "embed" // embed font data
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 
 	"github.com/alecthomas/chroma/styles"
+	"github.com/golang/freetype/truetype"
 	flags "github.com/jessevdk/go-flags"
 	"github.com/matsuyoshi30/germanium"
 	findfont "github.com/matsuyoshi30/go-findfont"
 	"github.com/skanehira/clipboard-image/v2"
+	"golang.org/x/image/font"
 )
 
 var name = "germanium"
@@ -72,7 +75,7 @@ func Run() (err error) {
 	switch filename {
 	case "", "-":
 		if opts.Language == "" {
-			err = fmt.Errorf("If you want to use stdin, specify language")
+			err = fmt.Errorf("specify language in order to use stdin")
 			return
 		}
 		r = os.Stdin
@@ -107,21 +110,24 @@ func run(r io.Reader, filename string) error {
 	} else {
 		if filepath.IsAbs(opts.Output) {
 			out, err = os.Create(opts.Output)
+			if err != nil {
+				return err
+			}
 		} else {
 			currentDir, err := os.Getwd()
 			if err != nil {
 				return err
 			}
-			out, err = os.Create(filepath.Join(currentDir, opts.Output))
-		}
 
-		if err != nil {
-			return err
+			out, err = os.Create(filepath.Join(currentDir, opts.Output))
+			if err != nil {
+				return err
+			}
 		}
 	}
 
 	var fontData []byte
-	if opts.Font != germanium.DefaultFont {
+	if opts.Font != DefaultFont {
 		fontPath, err := findfont.Find(opts.Font + ".ttf")
 		if err != nil {
 			return err
@@ -133,12 +139,7 @@ func run(r io.Reader, filename string) error {
 		}
 	}
 
-	face, err := germanium.LoadFont(fontData)
-	if err != nil {
-		return err
-	}
-
-	src, err := germanium.ReadString(r, face)
+	face, err := loadFont(fontData)
 	if err != nil {
 		return err
 	}
@@ -148,11 +149,22 @@ func run(r io.Reader, filename string) error {
 	if opts.Style != `` {
 		style = opts.Style
 	}
-	image := germanium.NewImage(src, face, opts.NoWindowAccessBar)
-	if err := image.Draw(opts.BackgroundColor, style, opts.NoWindowAccessBar); err != nil {
+
+	var buf bytes.Buffer
+	src := io.TeeReader(r, &buf)
+
+	image, err := germanium.NewImage(src, face, fontSize, style, opts.BackgroundColor, opts.NoWindowAccessBar, opts.NoLineNum)
+	if err != nil {
 		return err
 	}
-	if err := image.Label(out, filename, src, opts.Language, style, face, !opts.NoLineNum); err != nil {
+
+	err = image.Draw()
+	if err != nil {
+		return err
+	}
+
+	err = image.Label(out, &buf, filename, opts.Language)
+	if err != nil {
 		return err
 	}
 
@@ -163,4 +175,29 @@ func run(r io.Reader, filename string) error {
 	}
 
 	return nil
+}
+
+// DefaultFont is default font name
+const DefaultFont = "Hack-Regular"
+
+var (
+	fontSize = 24.0
+
+	//go:embed font/Hack-Regular.ttf
+	fontHack []byte
+)
+
+// LoadFont loads font data and returns font.Face
+func loadFont(data []byte) (font.Face, error) {
+	fontData := fontHack
+	if len(data) > 0 {
+		fontData = data
+	}
+
+	ft, err := truetype.Parse(fontData)
+	if err != nil {
+		return nil, err
+	}
+
+	return truetype.NewFace(ft, &truetype.Options{Size: fontSize}), nil
 }
