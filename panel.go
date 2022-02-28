@@ -65,7 +65,7 @@ type Labeler interface {
 var _ Labeler = (*Panel)(nil)
 
 // NewImage generates new base panel
-func NewImage(src io.Reader, face font.Face, fontSize float64, style, backgroundColor string, noWindowAccessBar, noLineNum bool) (*Panel, error) {
+func NewImage(src io.Reader, face font.Face, fontSize float64, style, backgroundColor string, noRoundCorner, noWindowAccessBar, noLineNum bool) (*Panel, error) {
 	scanner := bufio.NewScanner(src)
 
 	var ret, ln int
@@ -87,6 +87,7 @@ func NewImage(src io.Reader, face font.Face, fontSize float64, style, background
 	p := NewPanel(0, 0, width, height)
 	p.style = style
 	p.bgColor = backgroundColor
+	p.noRoundCorner = noRoundCorner
 	p.noWindowAccessBar = noWindowAccessBar
 	p.noLineNum = noLineNum
 	p.fontFace = face
@@ -100,6 +101,7 @@ type Panel struct {
 	img               *image.RGBA
 	style             string
 	bgColor           string
+	noRoundCorner     bool
 	noWindowAccessBar bool
 	noLineNum         bool
 	Formatter         Formatter
@@ -147,7 +149,7 @@ func (p *Panel) Draw() error {
 	}
 
 	// round corner
-	p.drawAround(width, height)
+	p.drawAround(width, height, !p.noRoundCorner)
 
 	return nil
 }
@@ -174,12 +176,12 @@ func (p *Panel) drawControlButtons() {
 	}
 }
 
-func (p *Panel) drawAround(w, h int) {
-	p.drawRound(w, h)
+func (p *Panel) drawAround(w, h int, roundCorner bool) {
+	p.drawRound(w, h, roundCorner)
 	p.drawAroundBar(w, h)
 }
 
-func (p *Panel) drawRound(w, h int) {
+func (p *Panel) drawRound(w, h int, roundCorner bool) {
 	round := NewPanel(paddingWidth-radius, paddingHeight-radius, w-paddingWidth+radius, h-paddingHeight+radius)
 	corners := []image.Point{
 		{paddingWidth, paddingHeight},
@@ -188,7 +190,13 @@ func (p *Panel) drawRound(w, h int) {
 		{w - paddingWidth, h - paddingHeight},
 	}
 	for _, c := range corners {
-		round.drawCircle(c, radius, windowBackgroundColor)
+		if roundCorner {
+			round.drawCircle(c, radius, windowBackgroundColor)
+		} else {
+			np := NewPanel(c.X-radius, c.Y-radius, c.X+radius, c.Y+radius)
+			np.fillColor(windowBackgroundColor)
+			draw.Draw(p.img, p.img.Bounds(), np.img, image.Point{0, 0}, draw.Over)
+		}
 	}
 	draw.Draw(p.img, p.img.Bounds(), round.img, image.Point{0, 0}, draw.Over)
 }

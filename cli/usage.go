@@ -12,6 +12,7 @@ FLAGS:
     -c, --clip                Copy image to clipboard
     --list-styles             List all available styles for syntax highlighting
     --list-fonts              List all available fonts in your system
+    --no-round-corner         No round editor's corner
     --no-line-number          Hide the line number
     --no-window-access-bar    Hide the window access bar
     -v, --version             Show Version
