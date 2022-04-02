@@ -29,6 +29,8 @@ var (
 )
 
 func Run() (err error) {
+	var opts Options
+
 	parser := flags.NewParser(&opts, flags.HelpFlag|flags.PassDoubleDash)
 	parser.Usage = fmt.Sprintf(Usage, name)
 
@@ -98,10 +100,10 @@ func Run() (err error) {
 		r = file
 	}
 
-	return run(r, filename)
+	return run(opts, r, filename)
 }
 
-func run(r io.Reader, filename string) error {
+func run(opts Options, r io.Reader, filename string) error {
 	var (
 		out io.ReadWriter
 		err error
