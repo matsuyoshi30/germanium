@@ -13,7 +13,7 @@ jobs:
   test:
     strategy:
       matrix:
-        go-version: [1.16.x]
+        go-version: [1.17.x, 1.18.x]
         os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
@@ -24,8 +24,8 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Build
-      run: go build
-    - uses: dominikh/staticcheck-action@v1.0.0
+      run: make build
+    - uses: dominikh/staticcheck-action@v1.2.0
       name: staticcheck
       with:
         install-go: false
