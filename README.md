@@ -88,7 +88,7 @@ cd cmd/germanium && go install
 
 #### Requirements
 
-- go1.16
+- Go (1.17 or 1.18)
 
 ## Related Projects
 
