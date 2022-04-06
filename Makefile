@@ -7,7 +7,7 @@ BINARY_NAME=germanium
 all: build test
 build:
 	$(GOBUILD) -o $(BINARY_NAME) -v ./cmd/$(BINARY_NAME)
-test: build
+test:
 	$(GOTEST) -v ./...
 gentest: build
 	$(GOTEST) -v ./... -gen_golden_files

@@ -7,9 +7,11 @@ import (
 	"github.com/matsuyoshi30/germanium/cli"
 )
 
+var exit = os.Exit
+
 func main() {
 	if err := cli.Run(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		exit(1)
 	}
 }

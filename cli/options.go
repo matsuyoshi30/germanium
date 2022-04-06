@@ -13,5 +13,3 @@ type Options struct {
 	NoWindowAccessBar bool   `long:"no-window-access-bar" description:"Hide the window access bar"`
 	ShowVersion       bool   `short:"v" long:"version" description:"Show version"`
 }
-
-var opts Options

@@ -16,14 +16,17 @@ import (
 	"golang.org/x/image/font"
 )
 
-var (
-	paddingWidth  = 60
-	paddingHeight = 60
-	windowHeight  = 20 * 3
-	lineWidth     = 40
+const (
+	paddingWidth      = 60
+	paddingHeight     = 60
+	windowHeight      = 20 * 3
+	windowHeightNoBar = 10
+	lineWidth         = 40
 
 	radius = 10
+)
 
+var (
 	// default window background color
 	windowBackgroundColor = color.RGBA{40, 42, 54, 255}
 
@@ -141,9 +144,9 @@ func (p *Panel) Draw() error {
 
 	// window control bar
 	if p.noWindowAccessBar {
-		windowHeight = 10
+		p.drawWindowControlPanel(width, windowHeightNoBar)
 	} else {
-		p.drawWindowControlPanel(width, height)
+		p.drawWindowControlPanel(width, windowHeight)
 	}
 
 	// round corner
@@ -159,7 +162,7 @@ func (p *Panel) drawWindowPanel(w, h int) {
 }
 
 func (p *Panel) drawWindowControlPanel(w, h int) {
-	wc := NewPanel(paddingWidth, paddingHeight, w-paddingWidth, paddingHeight+windowHeight)
+	wc := NewPanel(paddingWidth, paddingHeight, w-paddingWidth, paddingHeight+h)
 	wc.fillColor(windowBackgroundColor)
 
 	wc.drawControlButtons()
@@ -287,7 +290,14 @@ func (p *Panel) Label(out io.Writer, src io.Reader, filename, language string) e
 		Src:  image.NewUniform(color.White),
 		Face: p.fontFace,
 	}
-	sp := image.Point{X: paddingWidth, Y: paddingHeight + windowHeight}
+
+	spy := paddingHeight
+	if p.noWindowAccessBar {
+		spy += windowHeightNoBar
+	} else {
+		spy += windowHeight
+	}
+	sp := image.Point{X: paddingWidth, Y: spy}
 	p.Formatter = NewPNGFormatter(p.fontSize, drawer, sp, !p.noLineNum)
 	formatters.Register("png", p.Formatter)
 
