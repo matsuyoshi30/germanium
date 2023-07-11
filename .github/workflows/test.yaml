@@ -28,6 +28,7 @@ jobs:
     - uses: dominikh/staticcheck-action@v1.2.0
       name: staticcheck
       with:
+        version: "2022.1.3"
         install-go: false
     - name: Test
       run: make test
