@@ -12,4 +12,5 @@ type Options struct {
 	NoLineNum         bool   `long:"no-line-number" description:"Hide the line number"`
 	NoWindowAccessBar bool   `long:"no-window-access-bar" description:"Hide the window access bar"`
 	ShowVersion       bool   `short:"v" long:"version" description:"Show version"`
+	FontSize          string `long:"font-size" default:"24" description:"Specify size of font"`
 }
