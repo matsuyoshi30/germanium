@@ -144,14 +144,12 @@ func run(opts Options, r io.Reader, filename string) error {
 		}
 	}
 
-	fontSizeString := `24.0`
-	if opts.FontSize != `` {
-		fontSizeString = opts.FontSize
-	}
-
-	fontSize, err := strconv.ParseFloat(fontSizeString, 64)
-	if err != nil {
-		return err
+	fontSize := germanium.FontSizeBase
+	if opts.FontSize != "" {
+		fontSize, err = strconv.ParseFloat(opts.FontSize, 64)
+		if err != nil {
+			return err
+		}
 	}
 
 	face, err := loadFont(fontData, fontSize)
