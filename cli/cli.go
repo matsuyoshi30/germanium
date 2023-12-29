@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/alecthomas/chroma/v2/styles"
 	"github.com/golang/freetype/truetype"
@@ -143,7 +144,15 @@ func run(opts Options, r io.Reader, filename string) error {
 		}
 	}
 
-	face, err := loadFont(fontData)
+	fontSize := germanium.FontSizeBase
+	if opts.FontSize != "" {
+		fontSize, err = strconv.ParseFloat(opts.FontSize, 64)
+		if err != nil {
+			return err
+		}
+	}
+
+	face, err := loadFont(fontData, fontSize)
 	if err != nil {
 		return err
 	}
@@ -185,14 +194,12 @@ func run(opts Options, r io.Reader, filename string) error {
 const DefaultFont = "Hack-Regular"
 
 var (
-	fontSize = 24.0
-
 	//go:embed font/Hack-Regular.ttf
 	fontHack []byte
 )
 
 // LoadFont loads font data and returns font.Face
-func loadFont(data []byte) (font.Face, error) {
+func loadFont(data []byte, fontSize float64) (font.Face, error) {
 	fontData := fontHack
 	if len(data) > 0 {
 		fontData = data

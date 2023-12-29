@@ -26,6 +26,7 @@ FLAGS:
     --list-fonts              List all available fonts in your system
     --no-line-number          Hide the line number
     --no-window-access-bar    Hide the window access bar
+    --font-size <SIZE>        Change the font size [default: 24px]
     -v, --version             Show Version
 ```
 

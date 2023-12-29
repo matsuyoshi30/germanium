@@ -35,6 +35,10 @@ func TestMain(t *testing.T) {
 			args: []string{"-s", "autumn"},
 		},
 		{
+			desc: "font-size",
+			args: []string{"--font-size", "48"},
+		},
+		{
 			desc: "no-line-num",
 			args: []string{"--no-line-number"},
 		},

@@ -17,11 +17,13 @@ import (
 )
 
 const (
-	paddingWidth      = 60
-	paddingHeight     = 60
-	windowHeight      = 20 * 3
-	windowHeightNoBar = 10
-	lineWidth         = 40
+	paddingWidth        = 60
+	paddingHeight       = 60
+	windowHeight        = 20 * 3
+	windowHeightNoBar   = 10
+	lineNumberWidthBase = 40
+
+	FontSizeBase = 24.0
 
 	radius = 10
 )
@@ -38,8 +40,8 @@ var (
 
 // CalcWidth calculates the image width from the length of the longest line of
 // the source code, padding and line number
-func CalcWidth(maxLineLen int) int {
-	return maxLineLen + (paddingWidth * 2) + lineWidth
+func CalcWidth(maxLineLen int, lineNumberWidth int) int {
+	return maxLineLen + (paddingWidth * 2) + lineNumberWidth
 }
 
 // CalcHeight calculates the image height from the number of lines of the
@@ -84,7 +86,11 @@ func NewImage(src io.Reader, face font.Face, fontSize float64, style, background
 		return nil, err
 	}
 
-	width := CalcWidth(font.MeasureString(face, " ").Ceil() * (ret + 1))
+	width := CalcWidth(
+		font.MeasureString(face, " ").Ceil()*(ret+1),
+		// adjust the width of the line number area based on font size
+		int(lineNumberWidthBase*fontSize/FontSizeBase),
+	)
 	height := CalcHeight(ln, fontSize, noWindowAccessBar)
 
 	p := NewPanel(0, 0, width, height)
