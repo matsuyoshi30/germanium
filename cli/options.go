@@ -13,4 +13,5 @@ type Options struct {
 	NoWindowAccessBar bool   `long:"no-window-access-bar" description:"Hide the window access bar"`
 	ShowVersion       bool   `short:"v" long:"version" description:"Show version"`
 	FontSize          string `long:"font-size" default:"24" description:"Specify size of font"`
+	RemoveExtraIndent bool   `long:"remove-extra-indent" description:"Remove extra indentation"`
 }
