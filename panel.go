@@ -225,43 +225,43 @@ func (p *Panel) fillColor(c color.RGBA) {
 }
 
 // drawCircle draw circle over r.img
-// http://dencha.ojaru.jp/programs_07/pg_graphic_09a1.html section7
 func (p *Panel) drawCircle(center image.Point, radius int, c color.RGBA) {
-	var cx, cy, d, dh, dd int
-	d = 1 - radius
-	dh = 3
-	dd = 5 - 2*radius
-	cy = radius
+		x := radius
+	y := 0
+	err := 0
 
-	for cx = 0; cx <= cy; cx++ {
-		if d < 0 {
-			d += dh
-			dh += 2
-			dd += 2
-		} else {
-			d += dd
-			dh += 2
-			dd += 4
-			cy--
+	// Function to check if you're on the edges (avoid pixels at the ends)
+	isEdge := func(i, axis, radius int) bool {
+		return i == axis - radius || i == axis + radius
+	}
+
+	// Filling the circle
+	for x >= y {
+		// Draw pixels in the eight octants
+		for i := center.X - x; i <= center.X + x; i++ {
+			// Do not desine pixels at horizontal ends
+			if !(y == 0 && isEdge(i, center.X, radius)) {
+				p.img.Set(i, center.Y + y, c) // Octant 1 and 2
+				p.img.Set(i, center.Y - y, c) // Octant 3 and 4
+			}
+		}
+		
+		for i := center.X - y; i <= center.X + y; i++ {
+			// Do not draw pixels at vertical ends
+			if !(x == radius && y == 0) {
+				p.img.Set(i, center.Y + x, c) // Octant 5 and 6
+				p.img.Set(i, center.Y - x, c) // Octant 7 and 8
+			}
 		}
 
-		p.img.Set(center.X+cy, center.Y+cx, c) // 0-45
-		p.img.Set(center.X+cx, center.Y+cy, c) // 45-90
-		p.img.Set(center.X-cx, center.Y+cy, c) // 90-135
-		p.img.Set(center.X-cy, center.Y+cx, c) // 135-180
-		p.img.Set(center.X-cy, center.Y-cx, c) // 180-225
-		p.img.Set(center.X-cx, center.Y-cy, c) // 225-270
-		p.img.Set(center.X+cx, center.Y-cy, c) // 270-315
-		p.img.Set(center.X+cy, center.Y-cx, c) // 315-360
-
-		// draw line same y position
-		for x := center.X - cy; x <= center.X+cy; x++ {
-			p.img.Set(x, center.Y+cx, c)
-			p.img.Set(x, center.Y-cx, c)
+		// Update error and circle variables
+		if err <= 0 {
+			y++
+			err += 2*y + 1
 		}
-		for x := center.X - cx; x <= center.X+cx; x++ {
-			p.img.Set(x, center.Y+cy, c)
-			p.img.Set(x, center.Y-cy, c)
+		if err > 0 {
+			x--
+			err -= 2*x + 1
 		}
 	}
 }
