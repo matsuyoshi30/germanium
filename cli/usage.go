@@ -14,6 +14,7 @@ FLAGS:
     --list-fonts              List all available fonts in your system
     --no-line-number          Hide the line number
     --no-window-access-bar    Hide the window access bar
+    --remove-extra-indent     Remove extra indentation
     -v, --version             Show Version
 
 AUTHOR:
