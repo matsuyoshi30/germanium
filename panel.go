@@ -226,31 +226,31 @@ func (p *Panel) fillColor(c color.RGBA) {
 
 // drawCircle draw circle over r.img
 func (p *Panel) drawCircle(center image.Point, radius int, c color.RGBA) {
-		x := radius
+	x := radius
 	y := 0
 	err := 0
 
 	// Function to check if you're on the edges (avoid pixels at the ends)
 	isEdge := func(i, axis, radius int) bool {
-		return i == axis - radius || i == axis + radius
+		return i == axis-radius || i == axis+radius
 	}
 
 	// Filling the circle
 	for x >= y {
 		// Draw pixels in the eight octants
-		for i := center.X - x; i <= center.X + x; i++ {
+		for i := center.X - x; i <= center.X+x; i++ {
 			// Do not desine pixels at horizontal ends
 			if !(y == 0 && isEdge(i, center.X, radius)) {
-				p.img.Set(i, center.Y + y, c) // Octant 1 and 2
-				p.img.Set(i, center.Y - y, c) // Octant 3 and 4
+				p.img.Set(i, center.Y+y, c) // Octant 1 and 2
+				p.img.Set(i, center.Y-y, c) // Octant 3 and 4
 			}
 		}
-		
-		for i := center.X - y; i <= center.X + y; i++ {
+
+		for i := center.X - y; i <= center.X+y; i++ {
 			// Do not draw pixels at vertical ends
 			if !(x == radius && y == 0) {
-				p.img.Set(i, center.Y + x, c) // Octant 5 and 6
-				p.img.Set(i, center.Y - x, c) // Octant 7 and 8
+				p.img.Set(i, center.Y+x, c) // Octant 5 and 6
+				p.img.Set(i, center.Y-x, c) // Octant 7 and 8
 			}
 		}
 
