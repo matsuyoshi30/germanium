@@ -169,13 +169,13 @@ func run(opts Options, r io.Reader, filename string) error {
 	if opts.RemoveExtraIndent {
 		extra_indent := -1
 
-		var lines [][]byte
+		var lines []string
 
 		scanner := bufio.NewScanner(r)
 
 		// check minimum indentation
 		for scanner.Scan() {
-			lines = append(lines, scanner.Bytes())
+			lines = append(lines, strings.ReplaceAll(scanner.Text(), "\t", "    ")) // replace tab to whitespace
 			line := lines[len(lines)-1]
 
 			// Skip line with no chars
