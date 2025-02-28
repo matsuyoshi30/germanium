@@ -201,7 +201,7 @@ func run(opts Options, r io.Reader, filename string) error {
 		}
 
 		// Export the new reader without the extra indentation
-		r = bytes.NewReader(bytes.Join(lines, []byte("\n")))
+		r = strings.NewReader(strings.Join(lines, "\n"))
 	}
 
 	var buf bytes.Buffer
