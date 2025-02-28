@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bufio"
 	"bytes"
 	_ "embed" // embed font data
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/alecthomas/chroma/v2/styles"
 	"github.com/golang/freetype/truetype"
@@ -163,10 +165,47 @@ func run(opts Options, r io.Reader, filename string) error {
 		style = opts.Style
 	}
 
+	// Remove extra indent, little bit hacky and could
+	if opts.RemoveExtraIndent {
+		extra_indent := -1
+
+		var lines [][]byte
+
+		scanner := bufio.NewScanner(r)
+
+		// check minimum indentation
+		for scanner.Scan() {
+			lines = append(lines, scanner.Bytes())
+			line := lines[len(lines)-1]
+
+			// Skip line with no chars
+			if len(line) == 0 {
+				continue
+			}
+
+			line_indent := len(line) - len(strings.TrimLeft(string(line), " "))
+
+			if line_indent < extra_indent || extra_indent == -1 {
+				extra_indent = line_indent
+			}
+		}
+
+		// remove extra indent for each lines
+		for index := range lines {
+			// Skip line with no chars
+			if len(lines[index]) == 0 {
+				continue
+			}
+
+			lines[index] = lines[index][extra_indent:]
+		}
+
+		// Export the new reader without the extra indentation
+		r = bytes.NewReader(bytes.Join(lines, []byte("\n")))
+	}
+
 	var buf bytes.Buffer
-	var buf2 bytes.Buffer
 	src := io.TeeReader(r, &buf)
-	src = io.TeeReader(src, &buf2)
 
 	image, err := germanium.NewImage(src, face, fontSize, style, opts.BackgroundColor, opts.NoWindowAccessBar, opts.NoLineNum)
 	if err != nil {
@@ -178,7 +217,7 @@ func run(opts Options, r io.Reader, filename string) error {
 		return err
 	}
 
-	err = image.Label(out, &buf, filename, opts.Language, opts.RemoveExtraIndent)
+	err = image.Label(out, &buf, filename, opts.Language)
 	if err != nil {
 		return err
 	}

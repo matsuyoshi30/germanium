@@ -2,7 +2,6 @@ package germanium
 
 import (
 	"bufio"
-	"bytes"
 	"image"
 	"image/color"
 	"image/draw"
@@ -65,7 +64,7 @@ var _ Drawer = (*Panel)(nil)
 
 // Labeler implements Label()
 type Labeler interface {
-	Label(io.Writer, io.Reader, string, string, bool) error
+	Label(io.Writer, io.Reader, string, string) error
 }
 
 var _ Labeler = (*Panel)(nil)
@@ -268,7 +267,7 @@ func (p *Panel) drawCircle(center image.Point, radius int, c color.RGBA) {
 }
 
 // Label labels highlighted source code on panel
-func (p *Panel) Label(out io.Writer, src io.Reader, filename, language string, removeExtraIndent bool) error {
+func (p *Panel) Label(out io.Writer, src io.Reader, filename, language string) error {
 	var lexer chroma.Lexer
 	if language != "" {
 		lexer = lexers.Get(language)
@@ -285,29 +284,6 @@ func (p *Panel) Label(out io.Writer, src io.Reader, filename, language string, r
 	b, err := io.ReadAll(src)
 	if err != nil {
 		return err
-	}
-
-	// set default value of extra indent
-	extra_indent := 0
-
-	if removeExtraIndent {
-		extra_indent = -1
-		lines := bytes.Split(b, []byte("\n"))
-
-		// check minimum indentation
-		for _, line := range lines {
-			line_indent := len(line) - len(strings.TrimLeft(string(line), " "))
-			if line_indent < extra_indent || extra_indent == -1 {
-				extra_indent = line_indent
-			}
-		}
-
-		// remove extra indent for each lines
-		for index := range lines {
-			lines[index] = lines[index][extra_indent:]
-		}
-
-		b = bytes.Join(lines, []byte("\n"))
 	}
 
 	iterator, err := lexer.Tokenise(nil, string(b))
