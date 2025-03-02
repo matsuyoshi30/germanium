@@ -6,6 +6,7 @@ import (
 	_ "embed" // embed font data
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -167,7 +168,7 @@ func run(opts Options, r io.Reader, filename string) error {
 
 	// Remove extra indent, little bit hacky and could
 	if opts.RemoveExtraIndent {
-		extra_indent := -1
+		extra_indent := math.MaxInt
 
 		var lines []string
 
@@ -185,7 +186,7 @@ func run(opts Options, r io.Reader, filename string) error {
 
 			line_indent := len(line) - len(strings.TrimLeft(string(line), " "))
 
-			if line_indent < extra_indent || extra_indent == -1 {
+			if line_indent < extra_indent {
 				extra_indent = line_indent
 			}
 		}
