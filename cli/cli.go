@@ -166,6 +166,11 @@ func run(opts Options, r io.Reader, filename string) error {
 	var buf bytes.Buffer
 	src := io.TeeReader(r, &buf)
 
+	padding := opts.Padding
+    if padding < 0 {
+        padding = 0 
+    }
+
 	image, err := germanium.NewImage(
 		src, 
 		face, 
@@ -175,7 +180,7 @@ func run(opts Options, r io.Reader, filename string) error {
 		opts.NoWindowAccessBar, 
 		opts.NoLineNum, 
 	    opts.Square,
-        opts.Padding,
+        padding,
 	)
 	if err != nil {
 		return err
