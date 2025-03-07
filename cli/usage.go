@@ -15,6 +15,8 @@ FLAGS:
     --no-line-number          Hide the line number
     --no-window-access-bar    Hide the window access bar
     -v, --version             Show Version
+    --square                  Adds padding to reach 1:1 aspect ratio 
+    --padding                 Padding in px
 
 AUTHOR:
     matsuyoshi30 <sfbgwm30@gmail.com>

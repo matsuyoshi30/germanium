@@ -70,7 +70,7 @@ type Labeler interface {
 var _ Labeler = (*Panel)(nil)
 
 // NewImage generates new base panel
-func NewImage(src io.Reader, face font.Face, fontSize float64, style, backgroundColor string, noWindowAccessBar, noLineNum bool) (*Panel, error) {
+func NewImage(src io.Reader, face font.Face, fontSize float64, style, backgroundColor string, noWindowAccessBar, noLineNum bool, square bool, padding int) (*Panel, error) {
 	scanner := bufio.NewScanner(src)
 
 	var ret, ln int
@@ -92,6 +92,14 @@ func NewImage(src io.Reader, face font.Face, fontSize float64, style, background
 		int(lineNumberWidthBase*fontSize/FontSizeBase),
 	)
 	height := CalcHeight(ln, fontSize, noWindowAccessBar)
+
+	if square {
+		if width < height {
+			width = height
+		} else {
+			height = width
+		}
+	}
 
 	p := NewPanel(0, 0, width, height)
 	p.style = style
