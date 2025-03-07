@@ -6,7 +6,9 @@ BINARY_NAME=germanium
 
 all: build test
 build:
-	$(GOBUILD) -o $(BINARY_NAME) -v ./cmd/$(BINARY_NAME)
+	$(GOBUILD) -o dist/$(BINARY_NAME) -v ./cmd/$(BINARY_NAME)
+build_windows:
+	GOOS=windows GOARCH=amd64 $(GOBUILD) -o dist/$(BINARY_NAME).exe -v ./cmd/$(BINARY_NAME)	
 test:
 	$(GOTEST) -v ./...
 gentest: build
