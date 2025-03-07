@@ -166,7 +166,28 @@ func run(opts Options, r io.Reader, filename string) error {
 	var buf bytes.Buffer
 	src := io.TeeReader(r, &buf)
 
-	image, err := germanium.NewImage(src, face, fontSize, style, opts.BackgroundColor, opts.NoWindowAccessBar, opts.NoLineNum)
+	parsedPadding, err := strconv.ParseInt(opts.Padding, 10, 32)
+	if err != nil {
+		return err
+	}
+    padding := int(parsedPadding) // Convert from int64 to int
+
+    if padding < 0 {
+		fmt.Println("Warning: Padding cannot be negative. Setting to 0.")
+        padding = 0
+    }
+
+	image, err := germanium.NewImage(
+		src, 
+		face, 
+		fontSize, 
+		style, 
+		opts.BackgroundColor, 
+		opts.NoWindowAccessBar, 
+		opts.NoLineNum, 
+	    opts.Square,
+        padding,
+	)
 	if err != nil {
 		return err
 	}

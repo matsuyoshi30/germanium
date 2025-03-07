@@ -13,4 +13,6 @@ type Options struct {
 	NoWindowAccessBar bool   `long:"no-window-access-bar" description:"Hide the window access bar"`
 	ShowVersion       bool   `short:"v" long:"version" description:"Show version"`
 	FontSize          string `long:"font-size" default:"24" description:"Specify size of font"`
+	Square            bool   `long:"square" description:"Image padded to 1:1 aspect ratio"`
+    Padding           string `long:"padding" default:"60" description:"Padding around the code"`
 }
