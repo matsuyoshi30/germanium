@@ -1,13 +1,16 @@
 package cli
 
 import (
+	"bufio"
 	"bytes"
 	_ "embed" // embed font data
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/alecthomas/chroma/v2/styles"
 	"github.com/golang/freetype/truetype"
@@ -161,6 +164,45 @@ func run(opts Options, r io.Reader, filename string) error {
 	style := `dracula`
 	if opts.Style != `` {
 		style = opts.Style
+	}
+
+	// Remove extra indent, little bit hacky and could
+	if opts.RemoveExtraIndent {
+		extra_indent := math.MaxInt
+
+		var lines []string
+
+		scanner := bufio.NewScanner(r)
+
+		// check minimum indentation
+		for scanner.Scan() {
+			lines = append(lines, strings.ReplaceAll(scanner.Text(), "\t", "    ")) // replace tab to whitespace
+			line := lines[len(lines)-1]
+
+			// Skip line with no chars
+			if len(line) == 0 {
+				continue
+			}
+
+			line_indent := len(line) - len(strings.TrimLeft(string(line), " "))
+
+			if line_indent < extra_indent {
+				extra_indent = line_indent
+			}
+		}
+
+		// remove extra indent for each lines
+		for index := range lines {
+			// Skip line with no chars
+			if len(lines[index]) == 0 {
+				continue
+			}
+
+			lines[index] = lines[index][extra_indent:]
+		}
+
+		// Export the new reader without the extra indentation
+		r = strings.NewReader(strings.Join(lines, "\n"))
 	}
 
 	var buf bytes.Buffer
